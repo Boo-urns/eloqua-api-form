@@ -23,25 +23,25 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     <p>Make words! <button id="saybtn">Say Something</button></p>
     <p>Make lasers! <button id="laserbtn">Fire lasers</button></p>
 
-    <eloqua-api-form author='{"name": "Lord Meowser", "image": "http://placekitten.com/g/200/300"}' fancy>
+    <eloqua-api-form formid="13">
       <h2>Hello eloqua-api-form</h2>
     </eloqua-api-form>
 
     <script>
       var seedElement = document.querySelector('eloqua-api-form');
-      
+
       document.querySelector('#saybtn').addEventListener('click', function() {
         alert(seedElement.sayHello('Hallo!'));
       });
-      
+
       document.querySelector('#laserbtn').addEventListener('click', function() {
         seedElement.fireLasers();
       });
-      
+
       document.addEventListener("eloqua-api-form-lasers", function(e) {
         console.log(e.detail.sound);
       });
-      
+
     </script>
 
   </body>

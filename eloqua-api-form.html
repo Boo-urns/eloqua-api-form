@@ -8,6 +8,12 @@ Code distributed by Google as part of the polymer project is also
 subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
 -->
 <link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../iron-ajax/iron-ajax.html">
+<link rel="import" href="..">
+<link rel="import" href="..">
+<link rel="import" href="..">
+<link rel="import" href="..">
+<link rel="import" href="..">
 
 <!--
 Pulls in and parses the eloqua REST API for forms.
@@ -32,9 +38,27 @@ Example:
       }
 
     </style>
+
+    <iron-ajax
+      auto
+      url="{{ajaxurl}}"
+      handle-as="json"
+      on-response="handleResponse"
+      debounce-duration="300"
+      last-response="{{ajaxResponse}}"></iron-ajax>
+    <!-- params='{"alt":"json", "q":"chrome"}' -->
     <h1>&lt;eloqua-api-form&gt;</h1>
     <content></content>
 
+
+       <!-- <template is="dom-repeat" items="[[ajaxResponse.items]]">
+         <div class="horizontal-section">
+           <h2><a href="[[url(item.id.videoId)]]" target="_blank">[[item.snippet.title]]</a></h2>
+           <iron-image src="[[item.snippet.thumbnails.high.url]]" width="256" height="256" sizing="cover" preload fade></iron-image>
+           <p>[[item.snippet.description]]</p>
+         </div>
+       </template> -->
+    <div id="testOutput"></div>
   </template>
 
 </dom-module>
@@ -58,6 +82,8 @@ Example:
        *
        */
       formid: Number,
+      ajaxurl: String,
+      testHTML: String
 
     },
 
@@ -70,6 +96,8 @@ Example:
       //
       // This is the point where you should make modifications to the DOM (when
       // necessary), or kick off any processes the element wants to perform.
+      //this.ajaxurl = 'http://localhost:5000/landingPage/70';
+      console.log('READY', this.formid);
     },
 
     attached: function() {
@@ -79,6 +107,7 @@ Example:
       // This is a good place to perform any work related to your element's
       // visual state or active behavior (measuring sizes, beginning animations,
       // loading resources, etc).
+      this.ajaxurl = 'http://localhost:5000/token';
     },
 
     detached: function() {
@@ -108,6 +137,59 @@ Example:
       return 'eloqua-api-form says, ' + response;
     },
 
+    handleResponse: function(response) {
+      //console.log('handleResponse', response);
+      if(this.ajaxurl !== 'http://localhost:5000/landingPage/70') {
+          this.ajaxurl = 'http://localhost:5000/landingPage/70';
+      } else {
+        this._setupForm(response);
+      }
+
+    },
+
+    _setupForm: function(data) {
+      console.log('SETUP FORM', data);
+      let html = data.detail.response.htmlContent.html;
+      let remove_arr = ['<!DOCTYPE html>', '<html>', '</html>', '<body>', '</body>'];
+
+      // Removing tags specified above
+      for(let i=0; i < remove_arr.length; i++) {
+        html = html.replace(remove_arr[i], '');
+      }
+      // Removing <head>
+      html = html.replace(/([\s\S]*)<head[\s\S]*?<\/head>/g, '$1');
+
+      // Removing scripts
+      html = html.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi
+, '');
+
+      // Removing styles
+      html = html.replace(/([\s\S]*)<style[\s\S]*?<\/style>/g, '$1');
+
+      // Removing Form (to see what is remaining)
+      let htmlNoForm = html.replace(/<form\b[^<]*(?:(?!<\/form>)<[^<]*)*<\/form>/gi
+, '');
+      htmlNoForm = htmlNoForm.replace(/^\s+|\s+$/g, '');
+      htmlNoForm = htmlNoForm.replace(/(\r\n|\n|\r)/gm, '');
+      htmlNoForm = htmlNoForm.replace(/ /g,'');
+      console.log(htmlNoForm.length);
+
+      // Just an empty div which means just the form is on the page
+      if(htmlNoForm.length === 11) {
+
+      } else {
+        // Figure out what else is on the page.
+        
+      }
+
+      //console.log(htmlNoForm, JSON.stringify(matches[0]), typeof(JSON.stringify(matches[0])));
+
+
+
+
+      //console.log(html);
+
+    },
     /**
      * Attempt to destroy this element's enemies with a beam of light!
      *
