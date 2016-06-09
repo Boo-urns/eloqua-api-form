@@ -1,0 +1,30 @@
+{
+  "name": "eloqua-api-form",
+  "version": "1.0.3",
+  "authors": [
+    "Corey Burns <coreyaburns@gmail.com>"
+  ],
+  "description": "An element to pull in an eloqua form via the REST API.",
+  "keywords": [
+    "web-component",
+    "polymer",
+    "eloqua",
+    "form"
+  ],
+  "main": "eloqua-api-form.html",
+  "license": "http://polymer.github.io/LICENSE.txt",
+  "homepage": "https://github.com/Boo-urns/seed-element/",
+  "ignore": [
+    "/.*",
+    "/test/"
+  ],
+  "dependencies": {
+    "polymer": "Polymer/polymer#^1.1.0",
+    "iron-ajax": "PolymerElements/iron-ajax#^1.2.0",
+    "paper-elements": "PolymerElements/paper-elements#^1.0.7"
+  },
+  "devDependencies": {
+    "iron-component-page": "PolymerElements/iron-component-page#^1.0.0",
+    "web-component-tester": "*"
+  }
+}

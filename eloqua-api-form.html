@@ -1,0 +1,123 @@
+<!--
+@license
+Copyright (c) 2015 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+<link rel="import" href="../polymer/polymer.html">
+
+<!--
+Pulls in and parses the eloqua REST API for forms.
+
+REQUIRES A Server to get keys to pull from the API.
+
+Example:
+
+    <eloqua-api-form formid="13"></eloqua-api-form>
+
+@element eloqua-api-form
+@demo demo/index.html
+@hero hero.svg
+-->
+<dom-module id="eloqua-api-form">
+
+  <template>
+    <style>
+      :host {
+        display: block;
+        box-sizing: border-box;
+      }
+
+    </style>
+    <h1>&lt;eloqua-api-form&gt;</h1>
+    <content></content>
+
+  </template>
+
+</dom-module>
+
+<script>
+
+  Polymer({
+
+    is: 'eloqua-api-form',
+
+    properties: {
+
+      /**
+       * `fancy` indicates that the element should don a monocle and tophat,
+       * while checking its pocket watch.
+       */
+      fancy: Boolean,
+
+      /**
+       * Self explanatory it's eloqua's form id
+       *
+       */
+      formid: Number,
+
+    },
+
+    // Element Lifecycle
+
+    ready: function() {
+      // `ready` is called after all elements have been configured, but
+      // propagates bottom-up. This element's children are ready, but parents
+      // are not.
+      //
+      // This is the point where you should make modifications to the DOM (when
+      // necessary), or kick off any processes the element wants to perform.
+    },
+
+    attached: function() {
+      // `attached` fires once the element and its parents have been inserted
+      // into a document.
+      //
+      // This is a good place to perform any work related to your element's
+      // visual state or active behavior (measuring sizes, beginning animations,
+      // loading resources, etc).
+    },
+
+    detached: function() {
+      // The analog to `attached`, `detached` fires when the element has been
+      // removed from a document.
+      //
+      // Use this to clean up anything you did in `attached`.
+    },
+
+    // Element Behavior
+
+    /**
+     * The `eloqua-api-form-lasers` event is fired whenever `fireLasers` is called.
+     *
+     * @event eloqua-api-form-lasers
+     * @detail {{sound: String}}
+     */
+
+    /**
+     * Sometimes it's just nice to say hi.
+     *
+     * @param {string} greeting A positive greeting.
+     * @return {string} The full greeting.
+     */
+    sayHello: function(greeting) {
+      var response = greeting || 'Hello World!';
+      return 'eloqua-api-form says, ' + response;
+    },
+
+    /**
+     * Attempt to destroy this element's enemies with a beam of light!
+     *
+     * Or, at least, dispatch an event in the vain hope that someone else will
+     * do the zapping.
+     */
+    fireLasers: function() {
+      this.fire('eloqua-api-form-lasers', {sound: 'Pew pew!'});
+    }
+
+  });
+
+</script>
