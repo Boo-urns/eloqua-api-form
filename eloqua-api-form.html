@@ -9,7 +9,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 -->
 <link rel="import" href="../polymer/polymer.html">
 <link rel="import" href="../iron-ajax/iron-ajax.html">
-<link rel="import" href="..">
+<link rel="import" href="../paper-input/paper-input.html">
 <link rel="import" href="..">
 <link rel="import" href="..">
 <link rel="import" href="..">
@@ -51,14 +51,14 @@ Example:
     <content></content>
 
 
-       <!-- <template is="dom-repeat" items="[[ajaxResponse.items]]">
-         <div class="horizontal-section">
+       <template is="dom-repeat" items="{{elqform}}">
+        <paper-input label="{{item.name}}" required auto-validate error-message="{{item.validations.message}}"></paper-input>
+         <!-- <div class="horizontal-section">
            <h2><a href="[[url(item.id.videoId)]]" target="_blank">[[item.snippet.title]]</a></h2>
            <iron-image src="[[item.snippet.thumbnails.high.url]]" width="256" height="256" sizing="cover" preload fade></iron-image>
            <p>[[item.snippet.description]]</p>
-         </div>
-       </template> -->
-    <div id="testOutput"></div>
+         </div> -->
+       </template>
   </template>
 
 </dom-module>
@@ -81,9 +81,12 @@ Example:
        * Self explanatory it's eloqua's form id
        *
        */
+      elqform: {
+        type: Object,
+        notfiy: true
+      },
       formid: Number,
-      ajaxurl: String,
-      testHTML: String
+      ajaxurl: String
 
     },
 
@@ -172,14 +175,22 @@ Example:
       htmlNoForm = htmlNoForm.replace(/^\s+|\s+$/g, '');
       htmlNoForm = htmlNoForm.replace(/(\r\n|\n|\r)/gm, '');
       htmlNoForm = htmlNoForm.replace(/ /g,'');
-      console.log(htmlNoForm.length);
 
       // Just an empty div which means just the form is on the page
-      if(htmlNoForm.length === 11) {
+      if(htmlNoForm.length <= 11) {
+        let amtForms = data.detail.response.forms.length;
+
+        if(amtForms === 1) {
+          console.log(data.detail.response.forms[0].elements);
+          this.elqform = data.detail.response.forms[0].elements;
+
+        } else {
+          console.error('NOT EXPECTING MORE THAN 1 FORM FOR NOW');
+        }
 
       } else {
         // Figure out what else is on the page.
-        
+
       }
 
       //console.log(htmlNoForm, JSON.stringify(matches[0]), typeof(JSON.stringify(matches[0])));
