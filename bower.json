@@ -21,7 +21,10 @@
   "dependencies": {
     "polymer": "Polymer/polymer#^1.1.0",
     "iron-ajax": "PolymerElements/iron-ajax#^1.2.0",
-    "paper-elements": "PolymerElements/paper-elements#^1.0.7"
+    "paper-elements": "PolymerElements/paper-elements#^1.0.7",
+    "iron-form": "PolymerElements/iron-form#^1.0.16",
+    "firebase-element": "GoogleWebComponents/firebase-element#^1.0.14",
+    "byutv-jsonp": "^1.2.0"
   },
   "devDependencies": {
     "iron-component-page": "PolymerElements/iron-component-page#^1.0.0",

@@ -8,12 +8,22 @@ Code distributed by Google as part of the polymer project is also
 subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
 -->
 <link rel="import" href="../polymer/polymer.html">
+
+<!-- FIREBASE -->
+<link rel="import" href="../firebase-element/firebase-collection.html">
+<link rel="import" href="../firebase-element/firebase-document.html">
+
+<!-- IRON ELEMENTS -->
 <link rel="import" href="../iron-ajax/iron-ajax.html">
+<link rel="import" href="../iron-form/iron-form.html">
+
+<link rel="import" href="../byutv-jsonp/byutv-jsonp.html" />
+
+<!-- PAPER ELEMENTS -->
 <link rel="import" href="../paper-input/paper-input.html">
-<link rel="import" href="..">
-<link rel="import" href="..">
-<link rel="import" href="..">
-<link rel="import" href="..">
+<link rel="import" href="../paper-button/paper-button.html">
+<link rel="import" href="../paper-checkbox/paper-checkbox.html">
+<link rel="import" href="../paper-dropdown-menu/paper-dropdown-menu.html">
 
 <!--
 Pulls in and parses the eloqua REST API for forms.
@@ -47,28 +57,67 @@ Example:
       debounce-duration="300"
       last-response="{{ajaxResponse}}"></iron-ajax>
     <!-- params='{"alt":"json", "q":"chrome"}' -->
+
+    <!-- <byutv-jsonp
+        id="postElq"
+        content-type="application/json"
+        url="https://[[elq.actionURL]]"
+        on-response="handleResponse"
+        debounce-duration="300"></byutv-jsonp> -->
+
+<firebase-document
+      location="https://eloqua-api-test.firebaseio.com/elq"
+      data="{{elq}}"></firebase-document>
+
+
+
     <h1>&lt;eloqua-api-form&gt;</h1>
     <content></content>
 
+    <form is="iron-form" id="elqForm" name="TEST_signup-1465575899166" method="post" action="http://localhost:5000/signup">
+        <input value="TEST_signup-1465575899166" type="hidden" name="elqFormName"  />
+        <input value="1811417362" type="hidden" name="elqSiteId"  />
 
-       <template is="dom-repeat" items="{{elqform}}">
+       <template is="dom-repeat" items="{{elqform}}" as="form">
 
-        <!-- TEXT INPUTS -->
-        <template is="dom-if" if="{{computeIsText(item.displayType)}}">
+          <!-- TEXT INPUTS -->
+          <template is="dom-if" if="{{computeInputType(form.displayType, 'text')}}">
 
-          <paper-input label="{{item.name}}" required auto-validate error-message="{{item.validations.message}}"></paper-input>
+            <paper-input label="{{form.name}}" name="{{form.htmlName}}" required auto-validate error-message="{{form.validations.message}}"></paper-input>
 
-        </template>
+          </template>
 
 
-        
+          <!-- CHECKBOX INPUTS -->
+          <template is="dom-if" if="{{computeInputType(form.displayType, 'checkbox')}}">
+
+            <paper-checkbox required name="{{form.htmlName}}" {{computeRequiredCbx(form.htmlName)}}>{{computeCbxLabel(form.name)}}</paper-checkbox>
+
+          </template>
+
+
+          <!-- SUBMIT -->
+          <template is="dom-if" if="{{computeInputType(form.displayType, 'submit')}}">
+            <paper-button raised onclick="submitForm(event)">{{form.name}}</paper-button>
+          </template>
 
        </template>
+    </form>
   </template>
 
 </dom-module>
 
 <script>
+function submitForm(event) {
+  //console.log(JSON.stringify(event.detail));
+  // var serializedItems =document.getElementById('postElq').serialize();
+  // console.log(serializedItems);
+  console.log(elqForm.serialize());
+  //document.getElementById('postElq').params = {"userId":"1"};
+  //this.$.ajax.generateRequest();
+  Polymer.dom(event).localTarget.parentElement.submit();
+//document.getElementById('elqForm').submit();
+}
 
   Polymer({
 
@@ -83,17 +132,26 @@ Example:
       fancy: Boolean,
 
       /**
-       * Self explanatory it's eloqua's form id
-       *
-       */
+        * Firebase eloqua settings to use for the form
+      */
+      fireElq: {
+        type: Object,
+        observer: 'fireElqSettings'
+      },
       elqform: {
         type: Object,
         notfiy: true
       },
+      /**
+       * Self explanatory it's eloqua's form id
+       *
+       */
       formid: Number,
       ajaxurl: String
 
     },
+
+    // Listeners
 
     // Element Lifecycle
 
@@ -147,8 +205,8 @@ Example:
 
     handleResponse: function(response) {
       //console.log('handleResponse', response);
-      if(this.ajaxurl !== 'http://localhost:5000/landingPage/70') {
-          this.ajaxurl = 'http://localhost:5000/landingPage/70';
+      if(this.ajaxurl !== 'http://localhost:5000/landingPage/73') {
+          this.ajaxurl = 'http://localhost:5000/landingPage/73';
       } else {
         this._setupForm(response);
       }
@@ -158,12 +216,16 @@ Example:
     _setupForm: function(data) {
       console.log('SETUP FORM', data);
       let html = data.detail.response.htmlContent.html;
+      console.log(html);
       let remove_arr = ['<!DOCTYPE html>', '<html>', '</html>', '<body>', '</body>'];
 
       // Removing tags specified above
       for(let item of remove_arr) {
         html = html.replace(item, '');
       }
+      // Removing styles
+      html = html.replace(/([\s\S]*)<style[\s\S]*?<\/style>/g, '$1');
+
       // Removing <head>
       html = html.replace(/([\s\S]*)<head[\s\S]*?<\/head>/g, '$1');
 
@@ -171,12 +233,14 @@ Example:
       html = html.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi
 , '');
 
-      // Removing styles
-      html = html.replace(/([\s\S]*)<style[\s\S]*?<\/style>/g, '$1');
 
       // Removing Form (to see what is remaining)
       let htmlNoForm = html.replace(/<form\b[^<]*(?:(?!<\/form>)<[^<]*)*<\/form>/gi
 , '');
+
+      // Removing styles that sneak through...
+      htmlNoForm = htmlNoForm.replace(/([\s\S]*)<style[\s\S]*?<\/style>/g, '$1');
+
       htmlNoForm = htmlNoForm.replace(/^\s+|\s+$/g, '');
       htmlNoForm = htmlNoForm.replace(/(\r\n|\n|\r)/gm, '');
       htmlNoForm = htmlNoForm.replace(/ /g,'');
@@ -202,17 +266,45 @@ Example:
     },
 
     /**
-     * Pass in the inputType to return boolean
+     * Pass in the inputType and typeExpecting to return boolean
      *
      * @param {string} the input type
+     * @param {string} input type expecting
      * @return {boolean} If the input type is text
      */
-    computeIsText: function(inputType) {
-      console.log(inputType);
-      console.log(inputType === 'text' ? true : false);
-      return inputType === 'text'
+    computeInputType: function(inputType, typeExpecting) {
+      return inputType === typeExpecting
                 ? true : false;
     },
+
+    /**
+     * Pass the checkbox name to return if required
+     *
+     * @param {string} the checkbox name
+     * @return {string} 'required' or ''
+     */
+    computeRequiredCbx: function(cbxName) {
+      return cbxName === 'confirm' ?
+              'required' : '';
+    },
+
+    /**
+     * Figure out the checkbox label
+     *
+     * @param {string} the checkbox name
+     * @return {string} same label or corporate text
+     */
+    computeCbxLabel: function(cbxName) {
+      return cbxName.toLowerCase() != 'opt in'
+              ? cbxName
+              : 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus nisi ligula, auctor eu sem et, pharetra fermentum elit. Proin a libero condimentum, cursus odio at, cursus tortor. Praesent placerat molestie risus, et condimentum eros ultricies et. Donec tempor semper justo. Duis vitae tincidunt magna, non ornare lacus. Praesent fringilla mi eget felis aliquam consectetur. ';
+
+    },
+
+    fireElqSettings: function(newData, oldData) {
+      console.log('ELQ SETTINGS', newData);
+    },
+
     /**
      * Attempt to destroy this element's enemies with a beam of light!
      *
