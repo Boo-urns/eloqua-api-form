@@ -52,12 +52,17 @@ Example:
 
 
        <template is="dom-repeat" items="{{elqform}}">
-        <paper-input label="{{item.name}}" required auto-validate error-message="{{item.validations.message}}"></paper-input>
-         <!-- <div class="horizontal-section">
-           <h2><a href="[[url(item.id.videoId)]]" target="_blank">[[item.snippet.title]]</a></h2>
-           <iron-image src="[[item.snippet.thumbnails.high.url]]" width="256" height="256" sizing="cover" preload fade></iron-image>
-           <p>[[item.snippet.description]]</p>
-         </div> -->
+
+        <!-- TEXT INPUTS -->
+        <template is="dom-if" if="{{computeIsText(item.displayType)}}">
+
+          <paper-input label="{{item.name}}" required auto-validate error-message="{{item.validations.message}}"></paper-input>
+
+        </template>
+
+
+        
+
        </template>
   </template>
 
@@ -156,8 +161,8 @@ Example:
       let remove_arr = ['<!DOCTYPE html>', '<html>', '</html>', '<body>', '</body>'];
 
       // Removing tags specified above
-      for(let i=0; i < remove_arr.length; i++) {
-        html = html.replace(remove_arr[i], '');
+      for(let item of remove_arr) {
+        html = html.replace(item, '');
       }
       // Removing <head>
       html = html.replace(/([\s\S]*)<head[\s\S]*?<\/head>/g, '$1');
@@ -193,13 +198,20 @@ Example:
 
       }
 
-      //console.log(htmlNoForm, JSON.stringify(matches[0]), typeof(JSON.stringify(matches[0])));
 
+    },
 
-
-
-      //console.log(html);
-
+    /**
+     * Pass in the inputType to return boolean
+     *
+     * @param {string} the input type
+     * @return {boolean} If the input type is text
+     */
+    computeIsText: function(inputType) {
+      console.log(inputType);
+      console.log(inputType === 'text' ? true : false);
+      return inputType === 'text'
+                ? true : false;
     },
     /**
      * Attempt to destroy this element's enemies with a beam of light!
