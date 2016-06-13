@@ -77,6 +77,8 @@ Example:
     <form is="iron-form" id="elqForm" name="TEST_signup-1465575899166" method="post" action="http://localhost:5000/signup">
         <input value="TEST_signup-1465575899166" type="hidden" name="elqFormName"  />
         <input value="1811417362" type="hidden" name="elqSiteId"  />
+        <input type="hidden" name="elqCustomerGUID" value="">
+        <input type="hidden" name="elqCookieWrite" value="0">
 
        <template is="dom-repeat" items="{{elqform}}" as="form">
 
@@ -291,6 +293,7 @@ function submitForm(event) {
     /**
      * Figure out the checkbox label
      *
+     * To insert the massive copy for the checbox. Feel free to remove method
      * @param {string} the checkbox name
      * @return {string} same label or corporate text
      */
@@ -318,3 +321,24 @@ function submitForm(event) {
   });
 
 </script>
+<script type='text/javascript'><!--//
+var timerId = null, timeout = 5;
+//--></script>
+<script type='text/javascript'><!--//
+function WaitUntilCustomerGUIDIsRetrieved() {
+if (!!(timerId)) {
+    if (timeout == 0) {
+return;
+}
+if (typeof this.GetElqCustomerGUID === 'function') {
+        document.forms["TEST_signup-1465575899166"].elements["elqCustomerGUID"].value = GetElqCustomerGUID();
+return;
+}
+timeout -= 1;
+}
+timerId = setTimeout("WaitUntilCustomerGUIDIsRetrieved()", 500);
+return;
+}
+window.onload = WaitUntilCustomerGUIDIsRetrieved;
+_elqQ.push(['elqGetCustomerGUID']);
+//--></script>
