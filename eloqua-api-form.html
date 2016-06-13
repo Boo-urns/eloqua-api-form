@@ -77,8 +77,6 @@ Example:
     <form is="iron-form" id="elqForm" name="TEST_signup-1465575899166" method="post" action="http://localhost:5000/signup">
         <input value="TEST_signup-1465575899166" type="hidden" name="elqFormName"  />
         <input value="1811417362" type="hidden" name="elqSiteId"  />
-        <input type="hidden" name="elqCustomerGUID" value="">
-        <input type="hidden" name="elqCookieWrite" value="0">
 
        <template is="dom-repeat" items="{{elqform}}" as="form">
 
@@ -321,10 +319,10 @@ function submitForm(event) {
   });
 
 </script>
-<script type='text/javascript'><!--//
+<!--<script type='text/javascript'>
 var timerId = null, timeout = 5;
-//--></script>
-<script type='text/javascript'><!--//
+</script>
+<script type='text/javascript'>
 function WaitUntilCustomerGUIDIsRetrieved() {
 if (!!(timerId)) {
     if (timeout == 0) {
@@ -341,4 +339,4 @@ return;
 }
 window.onload = WaitUntilCustomerGUIDIsRetrieved;
 _elqQ.push(['elqGetCustomerGUID']);
-//--></script>
+</script>-->
