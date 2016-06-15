@@ -71,7 +71,7 @@ Example:
      data="{{firebaseMarkup}}"></firebase-document>
 
     <firebase-document
-      location="https://eloqua-api-test.firebaseio.com/elq"
+      location="https://eloqua-api-test.firebaseio.com/elq/settings"
       data="{{firebaseElq}}"></firebase-document>
 
 
@@ -141,8 +141,13 @@ function submitForm(event) {
       //   type: Object,
       //   observer: 'dataChanged'
       // },
+
       firebaseurl: {
         type: String,
+      },
+      firebaseElq: {
+        type: Object,
+        observer: 'fireElqSettings'
       },
       firebaseElqForms: {
         type: String,
@@ -188,6 +193,8 @@ function submitForm(event) {
       // Listen for when the form is fully stamped out
       this.listen(this.$.formstamp, 'dom-change', 'templateSet');
 
+
+      console.log('FIREBASEELQ', this.firebaseElq);
 
 
       //console.log(markup);
@@ -322,7 +329,7 @@ function submitForm(event) {
 
 
           this.firebaseMarkup = elqFormData;
-        
+
         } else {
           console.error('NOT EXPECTING MORE THAN 1 FORM FOR NOW');
         }
@@ -366,32 +373,34 @@ function submitForm(event) {
     firebaseMarkupChanged: function(newData, oldData) {
       let timestamp;
       let currentTimestamp = Date.now();
-      let formData;
+      let formData = {};
       let outputForm = [];
 
       console.log(newData);
       for(var prop in newData) {
-        timestamp     = newData[prop].timestamp;
-        this.formName = newData[prop].formName;
-        formData = newData[prop];
+        formData[prop]= newData[prop];
       }
 
+      timestamp = formData.timestamp;
+
       console.log(currentTimestamp, timestamp, (currentTimestamp - timestamp));
-      if(1 ==1) {
-      //if((currentTimestamp - timestamp)  > (60 * 60 * 24 * 1000) * 2) {
+      //if(1 ==1) {
+      if((currentTimestamp - timestamp)  > (60 * 60 * 24 * 1000)) {
         console.log("NEED TO PULL NEW DATA FROM ELQ");
         this.ajaxurl = 'http://localhost:5000/token';
       } else {
         console.log("UNDER 1 DAY USE DB");
-        console.log(formData);
+
         for(var prop in formData) {
-          //console.log(prop, formData[prop]);
           outputForm.push(formData[prop]);
+
+          if(prop === 'formName') {
+            this.formName = formData[prop];
+          }
         }
 
         this.elqform = outputForm;
 
-        //console.log(this.elqform);
       }
 
     },
