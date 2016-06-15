@@ -72,7 +72,7 @@ Example:
 
     <firebase-document
       location="https://eloqua-api-test.firebaseio.com/elq"
-      data="{{elq}}"></firebase-document>
+      data="{{firebaseElq}}"></firebase-document>
 
 
 
@@ -84,7 +84,7 @@ Example:
 
     <form is="iron-form" id="elqForm" name="[[formName]]" method="post" action="http://localhost:5000/signup">
         <input value="[[formName]]" type="hidden" name="elqFormName"  />
-        <input value="[[elq.siteID]]" type="hidden" name="elqSiteId"  />
+        <input value="[[firebaseElq.siteID]]" type="hidden" name="elqSiteId"  />
 
        <template is="dom-repeat" items="{{elqform}}" as="form" id="formstamp">
 
@@ -132,13 +132,7 @@ function submitForm(event) {
        */
       fancy: Boolean,
 
-      /**
-        * Firebase eloqua settings to use for the form
-      */
-      fireElq: {
-        type: Object,
-        observer: 'fireElqSettings'
-      },
+
       elqform: {
         type: Object,
         notfiy: true
@@ -225,7 +219,7 @@ function submitForm(event) {
       // This is a good place to perform any work related to your element's
       // visual state or active behavior (measuring sizes, beginning animations,
       // loading resources, etc).
-      //this.ajaxurl = 'http://localhost:5000/token';
+
 
     },
 
@@ -257,12 +251,12 @@ function submitForm(event) {
     },
 
     handleResponse: function(response) {
-      //console.log('handleResponse', response);
-      // if(this.ajaxurl !== 'http://localhost:5000/landingPage/73') {
-      //     this.ajaxurl = 'http://localhost:5000/landingPage/73';
-      // } else {
-      //   this._setupForm(response);
-      // }
+      console.log('handleResponse', response);
+      if(this.ajaxurl !== 'http://localhost:5000/landingPage/' + this.formid) {
+          this.ajaxurl = 'http://localhost:5000/landingPage/' + this.formid;
+      } else {
+        this._setupForm(response);
+      }
 
     },
 
@@ -309,12 +303,26 @@ function submitForm(event) {
           console.log(data.detail.response.forms[0].elements);
           this.elqform = data.detail.response.forms[0].elements;
 
-          let elqFormData = this.elqform;
+          console.log("this.elqform", typeof(this.elqform), this.elqform);
+
+          let elqFormData = {};
+
+          for(var prop in this.elqform) {
+            elqFormData[prop] = this.elqform[prop];
+          }
+
+
+          elqFormData.formName  = this.formName;
           elqFormData.timestamp = Date.now();
 
-          this.$.firebaseForm.add(this.elqform);
+
+          console.log("ELQFORMDATA", elqFormData);
+
+          this.$.firebaseForm.set( elqFormData );
 
 
+          this.firebaseMarkup = elqFormData;
+        
         } else {
           console.error('NOT EXPECTING MORE THAN 1 FORM FOR NOW');
         }
@@ -346,9 +354,14 @@ function submitForm(event) {
       //this.$.firebase.add(this.$['add-category'].serialize().category)
     },
 
-    dataChanged: function(newData, oldData) {
-      console.log('FIREBASE DATA CHANGE', newData);
-    },
+
+
+
+    // -----------------------------------------------------------------
+    //
+    // OBSERVERS
+    //
+    // -----------------------------------------------------------------
 
     firebaseMarkupChanged: function(newData, oldData) {
       let timestamp;
@@ -356,19 +369,23 @@ function submitForm(event) {
       let formData;
       let outputForm = [];
 
+      console.log(newData);
       for(var prop in newData) {
-        timestamp = newData[prop].timestamp
+        timestamp     = newData[prop].timestamp;
+        this.formName = newData[prop].formName;
         formData = newData[prop];
       }
 
       console.log(currentTimestamp, timestamp, (currentTimestamp - timestamp));
-
-      if((currentTimestamp - timestamp)  > 60 * 60 * 24 * 1000) {
+      if(1 ==1) {
+      //if((currentTimestamp - timestamp)  > (60 * 60 * 24 * 1000) * 2) {
         console.log("NEED TO PULL NEW DATA FROM ELQ");
+        this.ajaxurl = 'http://localhost:5000/token';
       } else {
         console.log("UNDER 1 DAY USE DB");
+        console.log(formData);
         for(var prop in formData) {
-          console.log(prop, formData[prop]);
+          //console.log(prop, formData[prop]);
           outputForm.push(formData[prop]);
         }
 
@@ -378,6 +395,19 @@ function submitForm(event) {
       }
 
     },
+
+
+    fireElqSettings: function(newData, oldData) {
+      console.log('ELQ SETTINGS', newData);
+    },
+
+
+
+    // -----------------------------------------------------------------
+    //
+    // COMPUTED PROPERTIES
+    //
+    // -----------------------------------------------------------------
 
     // Actually it's an eloqua landing page that has the form on it
     computeFirebaseForms: function(firebase, formid) {
@@ -420,9 +450,7 @@ function submitForm(event) {
 
     },
 
-    fireElqSettings: function(newData, oldData) {
-      console.log('ELQ SETTINGS', newData);
-    },
+
 
     /**
      * Attempt to destroy this element's enemies with a beam of light!
