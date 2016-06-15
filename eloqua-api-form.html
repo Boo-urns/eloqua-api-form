@@ -28,17 +28,16 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="import" href="../paper-dropdown-menu/paper-dropdown-menu.html">
 
 <!--
-Pulls in and parses the eloqua REST API for forms.
+Pulls in and parses the eloqua REST API for landing page. We are pulling data from the landing page for the form per governance requirements.
 
 REQUIRES A Server to get keys to pull from the API.
 
 Example:
 
-    <eloqua-api-form formid="13" firebaseURL="yourfirebaseurl.com"></eloqua-api-form>
+    <eloqua-api-form landingpageid="73" firebaseURL="yourfirebaseurl.com" settingspath="/elq/settings"></eloqua-api-form>
 
 @element eloqua-api-form
 @demo demo/index.html
-@hero hero.svg
 -->
 <dom-module id="eloqua-api-form">
 
@@ -51,6 +50,7 @@ Example:
 
     </style>
 
+
     <iron-ajax
       auto
       url="{{ajaxurl}}"
@@ -58,29 +58,19 @@ Example:
       on-response="handleResponse"
       debounce-duration="300"
       last-response="{{ajaxResponse}}"></iron-ajax>
-    <!-- params='{"alt":"json", "q":"chrome"}' -->
-
-
-
-
 
     <firebase-document
      id="firebaseForm"
      location="{{firebaseElqForms}}"
-     log="true"
      data="{{firebaseMarkup}}"></firebase-document>
 
     <firebase-document
-      location="https://eloqua-api-test.firebaseio.com/elq/settings"
+      location="{{firebaseSettingsPath}}"
       data="{{firebaseElq}}"></firebase-document>
-
 
 
     <h1>&lt;eloqua-api-form&gt;</h1>
     <content></content>
-    {{firebaseElqForms}}
-    {{elq}}
-    <div id="testForm">{{testForm}}</div>
 
     <form is="iron-form" id="elqForm" name="[[formName]]" method="post" action="http://localhost:5000/signup">
         <input value="[[formName]]" type="hidden" name="elqFormName"  />
@@ -125,58 +115,78 @@ function submitForm(event) {
     is: 'eloqua-api-form',
 
     properties: {
-
       /**
-       * `fancy` indicates that the element should don a monocle and tophat,
-       * while checking its pocket watch.
+       * `elqform` Pulled from the API or Firebase database
+       * to stamp out the template for the form
        */
-      fancy: Boolean,
-
-
       elqform: {
         type: Object,
         notfiy: true
       },
-      // elq: {
-      //   type: Object,
-      //   observer: 'dataChanged'
-      // },
 
+      /**
+       * `firebaseurl` URL for the root of your firebase database
+       * 'https://your-app.firebaseio.com'
+       */
       firebaseurl: {
         type: String,
       },
+
+      /**
+       * `firebaseElq` Pulling in specific data from firebase
+       *
+       */
       firebaseElq: {
         type: Object,
         observer: 'fireElqSettings'
       },
+
+      /**
+       * `firebaseElqForms` Computed property for path to the specified form
+       *
+       */
       firebaseElqForms: {
         type: String,
-        computed: 'computeFirebaseForms(firebaseurl, formid)'
+        computed: 'computeFirebaseForms(firebaseurl, landingpageid)'
       },
+
+      /**
+       * `firebaseElqForms` Computed property for path to eloqua settings
+       *
+       */
+      firebaseSettingsPath: {
+        type: String,
+        computed: 'computeFirebaseSettingPath(firebaseurl, settingspath)'
+      },
+
+      /**
+       * `firebaseMarkup` data from firebase for specified form on the landing page
+       *
+       */
       firebaseMarkup: {
         type: Object,
         observer: 'firebaseMarkupChanged'
       },
+
       /**
-       * Self explanatory it's eloqua's form id
+       * Self explanatory it's eloqua's landing page that the form is on
        *
        */
-      formid: Number,
-      formName: String, // Set by the API Call
+      landingpageid: Number,
 
-      ajaxurl: String,
-      currentTime: {
-        type: Number,
-        value: function(){ return Date.now() }
-      },
-      testForm: Object
+      /**
+       * Settings Path for data related to eloqua settings (actionURL, siteID etc...)
+       *
+       */
+      settingspath: String,
+      /**
+       * `formName` set by the API and or Firebase call.
+       * Used for the required input and form name for eloqua.
+       */
+      formName: String,
+      ajaxurl: String
     },
 
-    // Observers
-    observers: [
-      'templateSet(templateParsed)'
-    ],
-    // Listeners
 
     // Element Lifecycle
 
@@ -189,34 +199,6 @@ function submitForm(event) {
       // necessary), or kick off any processes the element wants to perform.
       //this.ajaxurl = 'http://localhost:5000/landingPage/70';
       //console.log('READY', this.formid, 'FIREBASE', this.firebaseMarkup);
-
-      // Listen for when the form is fully stamped out
-      this.listen(this.$.formstamp, 'dom-change', 'templateSet');
-
-
-      console.log('FIREBASEELQ', this.firebaseElq);
-
-
-      //console.log(markup);
-      // this.$.auth.signInAnonymously()
-      //   .then(function(response) {
-      //       console.log("AUTH RESPONSE", response);
-      //     }
-      //   ).catch(function(error) {
-      //       console.log("AUTH ERROR", error);
-      //   });
-
-      //console.log(markup, markup['0']);
-      // console.log(firebaseTimestamp.length, typeof(firebaseTimestamp));
-      // console.log(firebaseTimestamp);
-      // //console.log(firebaseTimestamp - currentTime);
-
-      //console.log(this.firebaseMarkup[0].timestamp);
-      // this.$.formstamp.addEventListener("dom-change", function(event){
-      //   console.log('DOM CHANGE', event);
-      //   console.log(event.srcElement.parentElement);
-      //   //Polymer.set('templateParsed', true);
-      // });
     },
 
     attached: function() {
@@ -239,28 +221,11 @@ function submitForm(event) {
 
     // Element Behavior
 
-    /**
-     * The `eloqua-api-form-lasers` event is fired whenever `fireLasers` is called.
-     *
-     * @event eloqua-api-form-lasers
-     * @detail {{sound: String}}
-     */
-
-    /**
-     * Sometimes it's just nice to say hi.
-     *
-     * @param {string} greeting A positive greeting.
-     * @return {string} The full greeting.
-     */
-    sayHello: function(greeting) {
-      var response = greeting || 'Hello World!';
-      return 'eloqua-api-form says, ' + response;
-    },
 
     handleResponse: function(response) {
       console.log('handleResponse', response);
-      if(this.ajaxurl !== 'http://localhost:5000/landingPage/' + this.formid) {
-          this.ajaxurl = 'http://localhost:5000/landingPage/' + this.formid;
+      if(this.ajaxurl !== 'http://localhost:5000/landingPage/' + this.landingpageid) {
+          this.ajaxurl = 'http://localhost:5000/landingPage/' + this.landingpageid;
       } else {
         this._setupForm(response);
       }
@@ -300,17 +265,11 @@ function submitForm(event) {
 
       // Just an empty div which means just the form is on the page
       if(htmlNoForm.length <= 11) {
-        let amtForms = data.detail.response.forms.length;
 
-        if(amtForms === 1) {
+        if(data.detail.response.forms.length === 1) {
 
-          console.log(data.detail.response.forms[0]);
           this.formName = data.detail.response.forms[0].htmlName;
-
-          console.log(data.detail.response.forms[0].elements);
           this.elqform = data.detail.response.forms[0].elements;
-
-          console.log("this.elqform", typeof(this.elqform), this.elqform);
 
           let elqFormData = {};
 
@@ -321,9 +280,6 @@ function submitForm(event) {
 
           elqFormData.formName  = this.formName;
           elqFormData.timestamp = Date.now();
-
-
-          console.log("ELQFORMDATA", elqFormData);
 
           this.$.firebaseForm.set( elqFormData );
 
@@ -336,29 +292,10 @@ function submitForm(event) {
 
       } else {
         // Figure out what else is on the page.
-
+        console.error("MoAr then just the form");
       }
 
 
-    },
-
-    templateSet: function(event) {
-      this.unlisten(this.$.formstamp, 'dom-change', 'templateSet');
-      console.log(event);
-      //console.log(event.srcElement.parentElement.innerHTML);
-      //console.log(Polymer.dom(this.$.elqForm).querySelectorAll);
-      let markup = Polymer.dom(this.root).querySelectorAll('#elqForm');
-      //console.log(typeof(markup), markup);
-      console.log(this.$$('#elqForm'));
-      //console.log(event.srcElement.items.ownerDocument);
-      //this.testForm = event.srcElement.items.ownerDocument.;
-      // markup = markup.replace(/([\s\S]*)<template[\s\S]*?<\/template>/g, '$1');
-      // console.log(markup);
-      // this.formMarkup.timestamp =  Date.now();
-
-    //  console.log(this.formMarkup);
-      //this.$.firebaseForm.add(this.formMarkup);
-      //this.$.firebase.add(this.$['add-category'].serialize().category)
     },
 
 
@@ -419,9 +356,26 @@ function submitForm(event) {
     // -----------------------------------------------------------------
 
     // Actually it's an eloqua landing page that has the form on it
-    computeFirebaseForms: function(firebase, formid) {
-      return firebase + '/forms/' + formid;
+    // But we're just pulling the form
+    computeFirebaseForms: function(firebase, landingPageID) {
+      return firebase + '/forms/' + landingPageID;
     },
+
+    /**
+     * Pass in firebase url and settings path
+     * to compute the value for firebaseSettings
+     * Used for location
+     *
+     * @param {string} firebase url
+     * @param {string} settings path
+     * @return {string} firebase url + settings path
+    */
+    computeFirebaseSettingPath(firebase, settings) {
+      console.log("COMPUTE FB SETTINGS", firebase + settings);
+      return firebase + settings;
+    },
+
+
     /**
      * Pass in the inputType and typeExpecting to return boolean
      *
@@ -434,6 +388,7 @@ function submitForm(event) {
                 ? true : false;
     },
 
+
     /**
      * Pass the checkbox name to return if required
      *
@@ -445,6 +400,7 @@ function submitForm(event) {
               'required' : '';
     },
 
+
     /**
      * Figure out the checkbox label
      *
@@ -452,24 +408,12 @@ function submitForm(event) {
      * @param {string} the checkbox name
      * @return {string} same label or corporate text
      */
-    computeCbxLabel: function(cbxName) {
-      return cbxName.toLowerCase() != 'opt in'
-              ? cbxName
+    computeCbxLabel: function(cbxLabel) {
+      return cbxLabel.toLowerCase() != 'opt in'
+              ? cbxLabel
               : 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus nisi ligula, auctor eu sem et, pharetra fermentum elit. Proin a libero condimentum, cursus odio at, cursus tortor. Praesent placerat molestie risus, et condimentum eros ultricies et. Donec tempor semper justo. Duis vitae tincidunt magna, non ornare lacus. Praesent fringilla mi eget felis aliquam consectetur. ';
 
     },
-
-
-
-    /**
-     * Attempt to destroy this element's enemies with a beam of light!
-     *
-     * Or, at least, dispatch an event in the vain hope that someone else will
-     * do the zapping.
-     */
-    fireLasers: function() {
-      this.fire('eloqua-api-form-lasers', {sound: 'Pew pew!'});
-    }
 
   });
 

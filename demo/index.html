@@ -18,31 +18,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   </head>
   <body unresolved>
 
-    <p>An example of <code>&lt;eloqua-api-form&gt;</code>:</p>
-
-    <p>Make words! <button id="saybtn">Say Something</button></p>
-    <p>Make lasers! <button id="laserbtn">Fire lasers</button></p>
-
-    <eloqua-api-form formid="73" firebaseURL="https://eloqua-api-test.firebaseio.com">
+    <eloqua-api-form landingpageid="73" firebaseURL="https://eloqua-api-test.firebaseio.com" settingspath="/elq/settings">
       <h2>Hello eloqua-api-form</h2>
     </eloqua-api-form>
-
-    <script>
-      var seedElement = document.querySelector('eloqua-api-form');
-
-      document.querySelector('#saybtn').addEventListener('click', function() {
-        alert(seedElement.sayHello('Hallo!'));
-      });
-
-      document.querySelector('#laserbtn').addEventListener('click', function() {
-        seedElement.fireLasers();
-      });
-
-      document.addEventListener("eloqua-api-form-lasers", function(e) {
-        console.log(e.detail.sound);
-      });
-
-    </script>
 
   </body>
 </html>
