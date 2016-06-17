@@ -322,7 +322,7 @@ function submitForm(event) {
 
       console.log(currentTimestamp, timestamp, (currentTimestamp - timestamp));
       //if(1 ==1) {
-      if((currentTimestamp - timestamp)  > (60 * 60 * 24 * 1000)) {
+      if((currentTimestamp - timestamp)  > (60 * 60 * 24 * 1000) || timestamp === undefined) {
         console.log("NEED TO PULL NEW DATA FROM ELQ");
         this.ajaxurl = 'http://localhost:5000/token';
       } else {
