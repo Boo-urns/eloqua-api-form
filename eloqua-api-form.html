@@ -50,14 +50,14 @@ Example:
 
     </style>
 
+    {{ajaxResponse}}
 
     <iron-ajax
       auto
       url="{{ajaxurl}}"
       handle-as="json"
       on-response="handleResponse"
-      debounce-duration="300"
-      last-response="{{ajaxResponse}}"></iron-ajax>
+      debounce-duration="300"></iron-ajax>
 
     <firebase-document
      id="firebaseForm"
@@ -86,6 +86,14 @@ Example:
           </template>
 
 
+          <!-- DROPDOWN INPUTS -->
+          <!-- <template is="dom-if" if="{{computeInputType(form.displayType, 'text')}}">
+
+            <paper-input label="{{form.name}}" name="{{form.htmlName}}" required auto-validate error-message="{{form.validations.message}}"></paper-input>
+
+          </template> -->
+
+
           <!-- CHECKBOX INPUTS -->
           <template is="dom-if" if="{{computeInputType(form.displayType, 'checkbox')}}">
 
@@ -104,6 +112,43 @@ Example:
   </template>
 
 </dom-module>
+<!-- POLYFILL FOR Object.assign -->
+<script>
+if (typeof Object.assign != 'function') {
+Object.assign = function(target) {
+  'use strict';
+  if (target == null) {
+    throw new TypeError('Cannot convert undefined or null to object');
+  }
+
+  target = Object(target);
+  for (var index = 1; index < arguments.length; index++) {
+    var source = arguments[index];
+    if (source != null) {
+      for (var key in source) {
+        if (Object.prototype.hasOwnProperty.call(source, key)) {
+          target[key] = source[key];
+        }
+      }
+    }
+  }
+  return target;
+};
+}
+
+if (!Object.is) {
+  Object.is = function(x, y) {
+    // SameValue algorithm
+    if (x === y) { // Steps 1-5, 7-10
+      // Steps 6.b-6.e: +0 != -0
+      return x !== 0 || 1 / x === 1 / y;
+    } else {
+      // Step 6.a: NaN == NaN
+      return x !== x && y !== y;
+    }
+  };
+}
+</script>
 
 <script>
 function submitForm(event) {
@@ -184,7 +229,12 @@ function submitForm(event) {
        * Used for the required input and form name for eloqua.
        */
       formName: String,
-      ajaxurl: String
+      ajaxurl: String,
+
+      ajaxResponse: {
+        type: String,
+        value: 'handleResponse'
+      }
     },
 
 
@@ -224,7 +274,14 @@ function submitForm(event) {
 
     handleResponse: function(response) {
       console.log('handleResponse', response);
-      if(this.ajaxurl !== 'http://localhost:5000/landingPage/' + this.landingpageid) {
+      console.log(this.ajaxurl, this.ajaxurl.indexOf('optionList'));
+      //  && this.ajaxurl.indexOf('optionList') !== -1
+      if(this.ajaxurl.indexOf('optionList') !== -1) {
+        let idx = this.ajaxurl.indexOf('optionList');
+        console.log("ID NUMBERRRRRRR " + this.ajaxurl.substring(idx + 11));
+        this._setupSelect(response, this.ajaxurl);
+      }
+      else if (this.ajaxurl !== 'http://localhost:5000/landingPage/' + this.landingpageid) {
           this.ajaxurl = 'http://localhost:5000/landingPage/' + this.landingpageid;
       } else {
         this._setupForm(response);
@@ -283,7 +340,6 @@ function submitForm(event) {
 
           this.$.firebaseForm.set( elqFormData );
 
-
           this.firebaseMarkup = elqFormData;
 
         } else {
@@ -301,6 +357,61 @@ function submitForm(event) {
 
 
 
+    _setupSelect: function(data) {
+      console.log("setup SELECT", data);
+      let selectOptions = data.detail.response.elements;
+      console.log(selectOptions);
+    },
+    // _objIsEqual: function(a, b) {
+    //   // arr of property names
+    //   let aProps = Object.getOwnPropertyNames(a);
+    //   let bProps = Object.getOwnPropertyNames(b);
+    //
+    //   // if number of properties are different
+    //   // objects are not equal
+    //   if(aProps.length !== bProps.length) {
+    //     return false;
+    //   }
+    //
+    //   for(let i = 0; i < aProps.length; i++) {
+    //     let prop = aProps[i];
+    //     console.log(prop, typeof(a[prop]));
+    //     if(typeof(a[prop]) === 'object') {
+    //       let aSubProps = Object.getOwnPropertyName(a[prop]);
+    //       let bSubProps = Object.getOwnPropertyName(b[prop]);
+    //
+    //       // if number of sub properties are different
+    //       // objects are not equal
+    //       if(aSubProps.length !== bSubProps.length) {
+    //         console.log("SUB PROPERTIES LENGTH !=");
+    //         return false;
+    //       }
+    //
+    //       for(let j = 0; j < aSubProps.length; j++) {
+    //         let subprop = aSubProps[j];
+    //
+    //         if(a[prop][subprop] !== b[prop][subprop]) {
+    //           console.log("SUB PROPERTIES ON OBJ !==");
+    //           return false;
+    //         }
+    //       }
+    //     } else {
+    //       // If values of same property aren't equal
+    //       // objects are not equal
+    //       if(a[prop] !== b[prop]) {
+    //         //console.log("PROPERTY DOES NOT MATCH: " + prop, a[prop], b[prop]);
+    //         return false;
+    //       }
+    //     }
+    //   }
+    //
+    //   // passed objects are equal!
+    //   return true;
+    // },
+
+
+
+
     // -----------------------------------------------------------------
     //
     // OBSERVERS
@@ -313,30 +424,56 @@ function submitForm(event) {
       let formData = {};
       let outputForm = [];
 
-      console.log(newData);
       for(var prop in newData) {
         formData[prop]= newData[prop];
       }
 
       timestamp = formData.timestamp;
 
-      console.log(currentTimestamp, timestamp, (currentTimestamp - timestamp));
-      //if(1 ==1) {
+      // if(oldData) {
+      //   if(newData.hasOwnProperty('timestamp') && oldData.hasOwnProperty('timestamp')) {
+      //     let tempNewData = Object.assign({}, newData);
+      //     delete tempNewData.timestamp;
+      //
+      //     let tempOldData = Object.assign({}, oldData);
+      //     delete tempOldData.timestamp;
+      //     console.log(this._objIsEqual(tempNewData, tempOldData), tempNewData, tempOldData);
+      //   }
+      // }
+
       if((currentTimestamp - timestamp)  > (60 * 60 * 24 * 1000) || timestamp === undefined) {
         console.log("NEED TO PULL NEW DATA FROM ELQ");
         this.ajaxurl = 'http://localhost:5000/token';
       } else {
         console.log("UNDER 1 DAY USE DB");
+        let optionListIds = []; // store optionListIds here
 
-        for(var prop in formData) {
+        for( var prop in formData ) {
           outputForm.push(formData[prop]);
 
-          if(prop === 'formName') {
+          if( prop === 'formName' ) {
             this.formName = formData[prop];
           }
+
+          if( formData[prop]['displayType'] === 'singleSelect' ) {
+            optionListIds.push(parseInt(formData[prop]['optionListId']));
+          }
+
         }
 
+
         this.elqform = outputForm;
+
+        // If optionListIds > 0 we have some select inputs!
+        if ( optionListIds.length > 0 ) {
+
+          this.ajaxResponse = 'handleOptionLists';
+
+          for( let i = 0; i < optionListIds.length; i++ ) {
+              this.ajaxurl = `http://localhost:5000/optionList/${optionListIds[i]}`;
+          }
+
+        }
 
       }
 
