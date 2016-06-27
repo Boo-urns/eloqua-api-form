@@ -65,8 +65,13 @@ Example:
      data="{{firebaseMarkup}}"></firebase-document>
 
     <firebase-document
+      id="firebaseOptionList"
       location="{{firebaseSettingsPath}}"
       data="{{firebaseElq}}"></firebase-document>
+
+    <firebase-document
+      location="{{firebaseOptionListPath}}"
+      data="{{firebaseOptionList}}"></firebase-document>
 
 
     <h1>&lt;eloqua-api-form&gt;</h1>
@@ -213,6 +218,12 @@ function submitForm(event) {
         observer: 'firebaseMarkupChanged'
       },
 
+      firebaseOptionListPath: {
+        type: String,
+      },
+      firebaseOptionList: {
+        type: Object,
+      },
       /**
        * Self explanatory it's eloqua's landing page that the form is on
        *
@@ -279,7 +290,7 @@ function submitForm(event) {
       if(this.ajaxurl.indexOf('optionList') !== -1) {
         let idx = this.ajaxurl.indexOf('optionList');
         console.log("ID NUMBERRRRRRR " + this.ajaxurl.substring(idx + 11));
-        this._setupSelect(response, this.ajaxurl);
+        this._setupSelect(response,  this.ajaxurl.substring(idx + 11));
       }
       else if (this.ajaxurl !== 'http://localhost:5000/landingPage/' + this.landingpageid) {
           this.ajaxurl = 'http://localhost:5000/landingPage/' + this.landingpageid;
@@ -338,7 +349,7 @@ function submitForm(event) {
           elqFormData.formName  = this.formName;
           elqFormData.timestamp = Date.now();
 
-          this.$.firebaseForm.set( elqFormData );
+          //this.$.firebaseForm.set( elqFormData );
 
           this.firebaseMarkup = elqFormData;
 
@@ -357,57 +368,13 @@ function submitForm(event) {
 
 
 
-    _setupSelect: function(data) {
+    _setupSelect: function(data, id) {
       console.log("setup SELECT", data);
       let selectOptions = data.detail.response.elements;
-      console.log(selectOptions);
+
+      this.firebaseOptionListPath = this.firebaseurl + '/optionList/' + id;
+      this.firebaseOptionList = { options: selectOptions };
     },
-    // _objIsEqual: function(a, b) {
-    //   // arr of property names
-    //   let aProps = Object.getOwnPropertyNames(a);
-    //   let bProps = Object.getOwnPropertyNames(b);
-    //
-    //   // if number of properties are different
-    //   // objects are not equal
-    //   if(aProps.length !== bProps.length) {
-    //     return false;
-    //   }
-    //
-    //   for(let i = 0; i < aProps.length; i++) {
-    //     let prop = aProps[i];
-    //     console.log(prop, typeof(a[prop]));
-    //     if(typeof(a[prop]) === 'object') {
-    //       let aSubProps = Object.getOwnPropertyName(a[prop]);
-    //       let bSubProps = Object.getOwnPropertyName(b[prop]);
-    //
-    //       // if number of sub properties are different
-    //       // objects are not equal
-    //       if(aSubProps.length !== bSubProps.length) {
-    //         console.log("SUB PROPERTIES LENGTH !=");
-    //         return false;
-    //       }
-    //
-    //       for(let j = 0; j < aSubProps.length; j++) {
-    //         let subprop = aSubProps[j];
-    //
-    //         if(a[prop][subprop] !== b[prop][subprop]) {
-    //           console.log("SUB PROPERTIES ON OBJ !==");
-    //           return false;
-    //         }
-    //       }
-    //     } else {
-    //       // If values of same property aren't equal
-    //       // objects are not equal
-    //       if(a[prop] !== b[prop]) {
-    //         //console.log("PROPERTY DOES NOT MATCH: " + prop, a[prop], b[prop]);
-    //         return false;
-    //       }
-    //     }
-    //   }
-    //
-    //   // passed objects are equal!
-    //   return true;
-    // },
 
 
 
@@ -483,6 +450,13 @@ function submitForm(event) {
     fireElqSettings: function(newData, oldData) {
       console.log('ELQ SETTINGS', newData);
     },
+
+
+
+    firebaseOptionListChange: function(newData, oldData) {
+      console.log("FIREBASE OPT LIST", newData);
+    },
+
 
 
 
