@@ -19,13 +19,16 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <!-- IRON ELEMENTS -->
 <link rel="import" href="../iron-ajax/iron-ajax.html">
 <link rel="import" href="../iron-form/iron-form.html">
+<link rel="import" href="../iron-flex-layout/iron-flex-layout-classes.html">
 
 
 <!-- PAPER ELEMENTS -->
+<link rel="import" href="../paper-item/paper-item.html">
 <link rel="import" href="../paper-input/paper-input.html">
 <link rel="import" href="../paper-button/paper-button.html">
 <link rel="import" href="../paper-checkbox/paper-checkbox.html">
 <link rel="import" href="../paper-dropdown-menu/paper-dropdown-menu.html">
+<link rel="import" href="../paper-listbox/paper-listbox.html">
 
 <!--
 Pulls in and parses the eloqua REST API for landing page. We are pulling data from the landing page for the form per governance requirements.
@@ -46,11 +49,52 @@ Example:
       :host {
         display: block;
         box-sizing: border-box;
+        --paper-checkbox-label-spacing: 20px;
+        --paper-checkbox-checked-color: #494949;
+        --paper-input-container-label-focus: {
+          color: #494949;
+        };
+        --paper-input-container-underline-focus: {
+          background: #ffca00;
+        };
+      }
+      paper-input,
+      paper-checkbox {
+        padding: 10px 2.5%;
+      }
+      paper-input,
+      paper-dropdown-menu {
+        text-transform: uppercase;
+      }
+      paper-input.small {
+        @apply(--layout-flex);
+        width: 33%;
+        display: inline-block;
+        box-sizing: border-box;
+      }
+      paper-input.medium {
+        @apply(--layout-flex);
+        width: 48.75%; /* 48.75 * 2 = 97.5 to get the amt padding on the right*/
+        padding: 10px 0 10px 2.5%;
+        display: inline-block;
+        box-sizing: border-box;
       }
 
+      paper-dropdown-menu.large {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 10px 2.5%;
+      }
+      paper-button.submit {
+        background: #ffca00;
+        border-radius: 0;
+        width: 95%;
+        margin: 10px 2.5%;
+        box-sizing: border-box;
+
+      }
     </style>
 
-    {{ajaxResponse}}
 
     <iron-ajax
       auto
@@ -58,7 +102,13 @@ Example:
       handle-as="json"
       on-response="handleResponse"
       debounce-duration="300"></iron-ajax>
-
+    <!-- <iron-ajax
+      auto
+      url="[[formAction]]"
+      params={}
+      handle-as="json"
+      on-response="formResponse"></iron-ajax>
+       -->
     <firebase-document
      id="firebaseForm"
      location="{{firebaseElqForms}}"
@@ -77,39 +127,46 @@ Example:
     <h1>&lt;eloqua-api-form&gt;</h1>
     <content></content>
 
-    <form is="iron-form" id="elqForm" name="[[formName]]" method="post" action="http://localhost:5000/signup">
+    <form is="iron-form" id="elqForm" class="horizontal layout wrap" name="[[formName]]" method="post" action="http://localhost:5000/signup">
         <input value="[[formName]]" type="hidden" name="elqFormName"  />
         <input value="[[firebaseElq.siteID]]" type="hidden" name="elqSiteId"  />
 
-       <template is="dom-repeat" items="{{elqform}}" as="form" id="formstamp">
+       <template is="dom-repeat" items="{{elqform}}" as="input" id="formstamp">
 
           <!-- TEXT INPUTS -->
-          <template is="dom-if" if="{{computeInputType(form.displayType, 'text')}}">
+          <template is="dom-if" if="{{computeInputType(input.displayType, 'text')}}">
 
-            <paper-input label="{{form.name}}" name="{{form.htmlName}}" required auto-validate error-message="{{form.validations.message}}"></paper-input>
+              <paper-input label="{{input.name}}" name="{{input.htmlName}}" class$="[[returnFieldSize(input.style)]]" required auto-validate error-message="{{input.validations.message}}"></paper-input>
 
           </template>
 
-
           <!-- DROPDOWN INPUTS -->
-          <!-- <template is="dom-if" if="{{computeInputType(form.displayType, 'text')}}">
+          <template is="dom-if" if="{{computeInputType(input.displayType, 'singleSelect')}}">
 
-            <paper-input label="{{form.name}}" name="{{form.htmlName}}" required auto-validate error-message="{{form.validations.message}}"></paper-input>
+            <paper-dropdown-menu label="{{input.name}}" selected-item="{{selectedItem}}" class$="[[returnFieldSize(input.style)]]" horizontal-align="left">
+              <paper-listbox class="dropdown-content">
 
-          </template> -->
+              <template is="dom-repeat" items="{{firebaseOptionList.options}}" as="list" filter="{{computeFilter(list)}}">
+                <paper-item value="{{list.value}}">{{list.displayName}}</paper-item>
+              </template>
+
+              </paper-listbox>
+            </paper-dropdown-menu>
+            <input name="{{input.name}}" type="hidden" value="[[selectedItem.value]]">
+          </template>
 
 
           <!-- CHECKBOX INPUTS -->
-          <template is="dom-if" if="{{computeInputType(form.displayType, 'checkbox')}}">
+          <template is="dom-if" if="{{computeInputType(input.displayType, 'checkbox')}}">
 
-            <paper-checkbox required name="{{form.htmlName}}" {{computeRequiredCbx(form.htmlName)}}>{{computeCbxLabel(form.name)}}</paper-checkbox>
+            <paper-checkbox required name="{{input.htmlName}}" {{computeRequiredCbx(input.htmlName)}}>{{computeCbxLabel(input.name)}}</paper-checkbox>
 
           </template>
 
 
           <!-- SUBMIT -->
-          <template is="dom-if" if="{{computeInputType(form.displayType, 'submit')}}">
-            <paper-button raised onclick="submitForm(event)">{{form.name}}</paper-button>
+          <template is="dom-if" if="{{computeInputType(input.displayType, 'submit')}}">
+            <paper-button class="submit" onclick="submitForm(event)">{{input.name}}</paper-button>
           </template>
 
        </template>
@@ -156,6 +213,7 @@ if (!Object.is) {
 </script>
 
 <script>
+
 function submitForm(event) {
   Polymer.dom(event).localTarget.parentElement.submit();
 }
@@ -371,9 +429,21 @@ function submitForm(event) {
     _setupSelect: function(data, id) {
       console.log("setup SELECT", data);
       let selectOptions = data.detail.response.elements;
-
+      // let mappedOptions = selectOptions.map(opt =>
+      //                       if(opt.value) {
+      //                         return opt;
+      //                       });
+      // console.log(mappedOptions);
       this.firebaseOptionListPath = this.firebaseurl + '/optionList/' + id;
       this.firebaseOptionList = { options: selectOptions };
+    },
+
+
+
+
+    returnFieldSize: function(styles) {
+      styles = JSON.parse(styles);
+      return styles.fieldSize;
     },
 
 
@@ -525,6 +595,9 @@ function submitForm(event) {
               : 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus nisi ligula, auctor eu sem et, pharetra fermentum elit. Proin a libero condimentum, cursus odio at, cursus tortor. Praesent placerat molestie risus, et condimentum eros ultricies et. Donec tempor semper justo. Duis vitae tincidunt magna, non ornare lacus. Praesent fringilla mi eget felis aliquam consectetur. ';
 
     },
+
+
+
 
   });
 
