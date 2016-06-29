@@ -281,6 +281,10 @@ function submitForm(event) {
       },
       firebaseOptionList: {
         type: Object,
+        observer: 'firebaseOptionChanged'
+      },
+      optionLists: {
+        type: Array
       },
       /**
        * Self explanatory it's eloqua's landing page that the form is on
@@ -343,11 +347,9 @@ function submitForm(event) {
 
     handleResponse: function(response) {
       console.log('handleResponse', response);
-      console.log(this.ajaxurl, this.ajaxurl.indexOf('optionList'));
-      //  && this.ajaxurl.indexOf('optionList') !== -1
+
       if(this.ajaxurl.indexOf('optionList') !== -1) {
         let idx = this.ajaxurl.indexOf('optionList');
-        console.log("ID NUMBERRRRRRR " + this.ajaxurl.substring(idx + 11));
         this._setupSelect(response,  this.ajaxurl.substring(idx + 11));
       }
       else if (this.ajaxurl !== 'http://localhost:5000/landingPage/' + this.landingpageid) {
@@ -428,14 +430,14 @@ function submitForm(event) {
 
     _setupSelect: function(data, id) {
       console.log("setup SELECT", data);
-      let selectOptions = data.detail.response.elements;
-      // let mappedOptions = selectOptions.map(opt =>
-      //                       if(opt.value) {
-      //                         return opt;
-      //                       });
-      // console.log(mappedOptions);
+
+      // Removing options with no value!
+      let filteredOptions = data.detail.response.elements.filter(opt =>
+                                opt.value !== undefined
+                                ? opt : '');
+
       this.firebaseOptionListPath = this.firebaseurl + '/optionList/' + id;
-      this.firebaseOptionList = { options: selectOptions };
+      this.firebaseOptionList = { options: filteredOptions };
     },
 
 
@@ -507,9 +509,10 @@ function submitForm(event) {
           this.ajaxResponse = 'handleOptionLists';
 
           for( let i = 0; i < optionListIds.length; i++ ) {
-              this.ajaxurl = `http://localhost:5000/optionList/${optionListIds[i]}`;
+              this.firebaseOptionListPath = `${this.firebaseurl}/optionList/${optionListIds[i]}`;
           }
 
+          this.optionLists = optionListIds;
         }
 
       }
@@ -525,6 +528,18 @@ function submitForm(event) {
 
     firebaseOptionListChange: function(newData, oldData) {
       console.log("FIREBASE OPT LIST", newData);
+
+    },
+
+
+    firebaseOptionChanged: function(newOpt, oldOpt) {
+      if(newOpt !== null) {
+        this.optionLists.shift();
+      } else {
+        this.ajaxurl = `http://localhost:5000/optionList/${this.optionLists[0]}`;
+      }
+
+      console.log('FIREBASE OPTIONS', newOpt);
     },
 
 
