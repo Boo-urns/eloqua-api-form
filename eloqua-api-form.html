@@ -127,7 +127,7 @@ Example:
     <h1>&lt;eloqua-api-form&gt;</h1>
     <content></content>
 
-    <form is="iron-form" id="elqForm" class="horizontal layout wrap" name="[[formName]]" method="post" action="http://localhost:5000/signup">
+    <form is="iron-form" id="elqForm" class="horizontal layout wrap" name="[[formName]]" method="post" action="http://localhost:5000/signup" on-iron-form-response="formResponse">
         <input value="[[formName]]" type="hidden" name="elqFormName"  />
         <input value="[[firebaseElq.siteID]]" type="hidden" name="elqSiteId"  />
 
@@ -311,6 +311,8 @@ function submitForm(event) {
     },
 
 
+
+
     // Element Lifecycle
 
     ready: function() {
@@ -360,25 +362,23 @@ function submitForm(event) {
 
     },
 
+
+    /*
+     * Response after submitting the form to eloqua
+     *
+    **/
+    formResponse: function(e) {
+      let removeAdditional = ['<!--[if lt IE 7]>', '<![endif]-->'];
+      let response = this._returnCleanedResponse(e.detail.response, removeAdditional);
+      console.log(response);
+      console.log('formResponse', e.detail.response);
+
+    },
+
+
     _setupForm: function(data) {
       console.log('SETUP FORM', data);
-      let html = data.detail.response.htmlContent.html;
-      let remove_arr = ['<!DOCTYPE html>', '<html>', '</html>', '<body>', '</body>'];
-
-      // Removing tags specified above
-      for(let item of remove_arr) {
-        html = html.replace(item, '');
-      }
-      // Removing styles
-      html = html.replace(/([\s\S]*)<style[\s\S]*?<\/style>/g, '$1');
-
-      // Removing <head>
-      html = html.replace(/([\s\S]*)<head[\s\S]*?<\/head>/g, '$1');
-
-      // Removing scripts
-      html = html.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi
-, '');
-
+      let html = this._returnCleanedResponse(data.detail.response.htmlContent.html);
 
       // Removing Form (to see what is remaining)
       let htmlNoForm = html.replace(/<form\b[^<]*(?:(?!<\/form>)<[^<]*)*<\/form>/gi
@@ -446,6 +446,36 @@ function submitForm(event) {
     returnFieldSize: function(styles) {
       styles = JSON.parse(styles);
       return styles.fieldSize;
+    },
+
+
+    /*
+     * Return stripped clean response (which is a html document)
+     */
+    _returnCleanedResponse: function(html, additionalTags = []) {
+      let remove_arr = ['<!DOCTYPE html>', '<html>', '</html>', '<body>', '</body>'];
+      for(let additional of additionalTags) {
+        remove_arr.push(additional);
+      }
+
+      console.log("REMOVE_ARR", remove_arr);
+
+      // Removing tags specified above
+      for(let item of remove_arr) {
+        html = html.replace(item, '');
+      }
+      // Removing styles
+      html = html.replace(/([\s\S]*)<style[\s\S]*?<\/style>/g, '$1');
+
+      // Removing <head>
+      html = html.replace(/([\s\S]*)<head[\s\S]*?<\/head>/g, '$1');
+
+      // Removing scripts
+      html = html.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi
+, '');
+
+      return html;
+
     },
 
 
