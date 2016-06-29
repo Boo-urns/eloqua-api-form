@@ -436,7 +436,7 @@ function submitForm(event) {
                                 opt.value !== undefined
                                 ? opt : '');
 
-      this.firebaseOptionListPath = this.firebaseurl + '/optionList/' + id;
+      this.firebaseOptionListPath = this.firebaseurl + '/elq/optionList/' + id;
       this.firebaseOptionList = { options: filteredOptions };
     },
 
@@ -509,7 +509,7 @@ function submitForm(event) {
           this.ajaxResponse = 'handleOptionLists';
 
           for( let i = 0; i < optionListIds.length; i++ ) {
-              this.firebaseOptionListPath = `${this.firebaseurl}/optionList/${optionListIds[i]}`;
+              this.firebaseOptionListPath = `${this.firebaseurl}/elq/optionList/${optionListIds[i]}`;
           }
 
           this.optionLists = optionListIds;
@@ -554,7 +554,7 @@ function submitForm(event) {
     // Actually it's an eloqua landing page that has the form on it
     // But we're just pulling the form
     computeFirebaseForms: function(firebase, landingPageID) {
-      return firebase + '/forms/' + landingPageID;
+      return firebase + '/elq/forms/' + landingPageID;
     },
 
     /**
