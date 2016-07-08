@@ -49,6 +49,8 @@ Example:
       :host {
         display: block;
         box-sizing: border-box;
+        margin-top: 0;
+        padding: 0;
         --paper-checkbox-label-spacing: 20px;
         --paper-checkbox-checked-color: #494949;
 
@@ -152,14 +154,14 @@ Example:
           <!-- TEXT INPUTS -->
           <template is="dom-if" if="{{computeInputType(input.displayType, 'text')}}">
 
-              <paper-input label="{{input.name}}" name="{{input.htmlName}}" class$="[[returnFieldSize(input.style)]]" required auto-validate error-message="{{input.validations.message}}"></paper-input>
+              <paper-input label="{{input.name}}" name="{{input.htmlName}}" class$="[[returnFieldSize(input.style)]]" required auto-validate error-message="{{input.validations.message}}" tabindex$="{{index}}"></paper-input>
 
           </template>
 
           <!-- DROPDOWN INPUTS -->
           <template is="dom-if" if="{{computeInputType(input.displayType, 'singleSelect')}}">
 
-            <paper-dropdown-menu label="{{input.name}}" selected-item="{{selectedItem}}" class$="[[returnFieldSize(input.style)]]" horizontal-align="left">
+            <paper-dropdown-menu label="{{input.name}}" selected-item="{{selectedItem}}" class$="[[returnFieldSize(input.style)]]" horizontal-align="left" tabindex$="{{index}}">
               <paper-listbox class="dropdown-content">
 
               <template is="dom-repeat" items="{{firebaseOptionList.options}}" as="list" filter="{{computeFilter(list)}}">
@@ -175,14 +177,14 @@ Example:
           <!-- CHECKBOX INPUTS -->
           <template is="dom-if" if="{{computeInputType(input.displayType, 'checkbox')}}">
 
-            <paper-checkbox required name="{{input.htmlName}}" {{computeRequiredCbx(input.htmlName)}}>{{computeCbxLabel(input.name)}}</paper-checkbox>
+            <paper-checkbox required name="{{input.htmlName}}" tabindex$="{{index}}" {{computeRequiredCbx(input.htmlName)}}>{{computeCbxLabel(input.name)}}</paper-checkbox>
 
           </template>
 
 
           <!-- SUBMIT -->
           <template is="dom-if" if="{{computeInputType(input.displayType, 'submit')}}">
-            <paper-button class="submit" onclick="submitForm(event)">{{input.name}}</paper-button>
+            <paper-button class="submit" tabindex$="{{index}}" onclick="submitForm(event)">{{input.name}}</paper-button>
           </template>
 
        </template>
