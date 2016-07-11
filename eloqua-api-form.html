@@ -107,6 +107,9 @@ Example:
         padding: 20px;
         color: #4c4c4c;
       }
+      .response {
+        padding: 20px;
+      }
     </style>
 
 
@@ -143,9 +146,14 @@ Example:
       </div>
     </template>
 
+    <template is="dom-if" if="{{response}}">
+      <div class="response">
+        {{response}}
+        <content></content>
+      </div>
+    </template>
 
-
-    <form is="iron-form" id="elqForm" class="horizontal layout wrap" name="[[formName]]" method="post" action="http://localhost:5000/signup" on-iron-form-response="formResponse">
+    <form hidden$="{{response}}" is="iron-form" id="elqForm" class="horizontal layout wrap" name="[[formName]]" method="post" action="{{formAction}}" on-iron-form-response="formResponse">
         <input value="[[formName]]" type="hidden" name="elqFormName"  />
         <input value="[[firebaseElq.siteID]]" type="hidden" name="elqSiteId"  />
 
@@ -323,6 +331,19 @@ function submitForm(event) {
       ajaxurl: String,
       pagetitle: String,
 
+      /**
+       * `actionurl` base url for where the api is hosted
+      */
+      actionurl: String,
+      /**
+       * `actionEndpoint` endpoint for where the form submission goes
+      */
+      actionEndpoint: String,
+      formAction: {
+        type: String,
+        computed: 'computeFormAction(actionurl, actionEndpoint)'
+      },
+
       ajaxResponse: {
         type: String,
         value: 'handleResponse'
@@ -341,8 +362,6 @@ function submitForm(event) {
       //
       // This is the point where you should make modifications to the DOM (when
       // necessary), or kick off any processes the element wants to perform.
-      //this.ajaxurl = 'http://localhost:5000/landingPage/70';
-      //console.log('READY', this.formid, 'FIREBASE', this.firebaseMarkup);
     },
 
     attached: function() {
@@ -357,6 +376,7 @@ function submitForm(event) {
     },
 
     detached: function() {
+      this.response = false;
       // The analog to `attached`, `detached` fires when the element has been
       // removed from a document.
       //
@@ -367,14 +387,13 @@ function submitForm(event) {
 
 
     handleResponse: function(response) {
-      console.log('handleResponse', response);
 
       if(this.ajaxurl.indexOf('optionList') !== -1) {
         let idx = this.ajaxurl.indexOf('optionList');
         this._setupSelect(response,  this.ajaxurl.substring(idx + 11));
       }
-      else if (this.ajaxurl !== 'http://localhost:5000/landingPage/' + this.landingpageid) {
-          this.ajaxurl = 'http://localhost:5000/landingPage/' + this.landingpageid;
+      else if (this.ajaxurl !== `${this.actionurl}/landingPage/${this.landingpageid}`) {
+          this.ajaxurl = `${this.actionurl}/landingPage/${this.landingpageid}`;
       } else {
         this._setupForm(response);
       }
@@ -390,7 +409,7 @@ function submitForm(event) {
       let removeAdditional = ['<!--[if lt IE 7]>', '<![endif]-->'];
       let response = this._returnCleanedResponse(e.detail.response, removeAdditional);
       console.log(response);
-      console.log('formResponse', e.detail.response);
+      this.set('response', response);
 
     },
 
@@ -477,8 +496,6 @@ function submitForm(event) {
         remove_arr.push(additional);
       }
 
-      console.log("REMOVE_ARR", remove_arr);
-
       // Removing tags specified above
       for(let item of remove_arr) {
         html = html.replace(item, '');
@@ -518,20 +535,9 @@ function submitForm(event) {
 
       timestamp = formData.timestamp;
 
-      // if(oldData) {
-      //   if(newData.hasOwnProperty('timestamp') && oldData.hasOwnProperty('timestamp')) {
-      //     let tempNewData = Object.assign({}, newData);
-      //     delete tempNewData.timestamp;
-      //
-      //     let tempOldData = Object.assign({}, oldData);
-      //     delete tempOldData.timestamp;
-      //     console.log(this._objIsEqual(tempNewData, tempOldData), tempNewData, tempOldData);
-      //   }
-      // }
-
       if((currentTimestamp - timestamp)  > (60 * 60 * 24 * 1000) || timestamp === undefined) {
         console.log("NEED TO PULL NEW DATA FROM ELQ");
-        this.ajaxurl = 'http://localhost:5000/token';
+        this.ajaxurl = `${this.actionurl}/token`;
       } else {
         console.log("UNDER 1 DAY USE DB");
         let optionListIds = []; // store optionListIds here
@@ -585,7 +591,7 @@ function submitForm(event) {
       if(newOpt !== null) {
         this.optionLists.shift();
       } else {
-        this.ajaxurl = `http://localhost:5000/optionList/${this.optionLists[0]}`;
+        this.ajaxurl = `${this.actionurl}/optionList/${this.optionLists[0]}`;
       }
 
       console.log('FIREBASE OPTIONS', newOpt);
@@ -660,6 +666,16 @@ function submitForm(event) {
 
     },
 
+    /**
+     * Return string for formAction
+     *
+     * @param {string}
+     * @return {string} 'required' or ''
+     */
+    computeFormAction: function(url, endpoint) {
+      console.log('computeFormAction',  `${url}/${endpoint}`);
+      return `${url}/${endpoint}`;
+    }
 
 
 
