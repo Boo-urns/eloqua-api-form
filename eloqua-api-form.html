@@ -408,14 +408,12 @@ function submitForm(event) {
     formResponse: function(e) {
       let removeAdditional = ['<!--[if lt IE 7]>', '<![endif]-->'];
       let response = this._returnCleanedResponse(e.detail.response, removeAdditional);
-      console.log(response);
       this.set('response', response);
 
     },
 
 
     _setupForm: function(data) {
-      console.log('SETUP FORM', data);
       let html = this._returnCleanedResponse(data.detail.response.htmlContent.html);
 
       // Removing Form (to see what is remaining)
@@ -467,7 +465,6 @@ function submitForm(event) {
 
 
     _setupSelect: function(data, id) {
-      console.log("setup SELECT", data);
 
       // Removing options with no value!
       let filteredOptions = data.detail.response.elements.filter(opt =>
@@ -536,10 +533,8 @@ function submitForm(event) {
       timestamp = formData.timestamp;
 
       if((currentTimestamp - timestamp)  > (60 * 60 * 24 * 1000) || timestamp === undefined) {
-        console.log("NEED TO PULL NEW DATA FROM ELQ");
         this.ajaxurl = `${this.actionurl}/token`;
       } else {
-        console.log("UNDER 1 DAY USE DB");
         let optionListIds = []; // store optionListIds here
 
         for( var prop in formData ) {
@@ -576,14 +571,11 @@ function submitForm(event) {
 
 
     fireElqSettings: function(newData, oldData) {
-      console.log('ELQ SETTINGS', newData);
     },
 
 
 
     firebaseOptionListChange: function(newData, oldData) {
-      console.log("FIREBASE OPT LIST", newData);
-
     },
 
 
@@ -594,7 +586,6 @@ function submitForm(event) {
         this.ajaxurl = `${this.actionurl}/optionList/${this.optionLists[0]}`;
       }
 
-      console.log('FIREBASE OPTIONS', newOpt);
     },
 
 
@@ -622,7 +613,6 @@ function submitForm(event) {
      * @return {string} firebase url + settings path
     */
     computeFirebaseSettingPath(firebase, settings) {
-      console.log("COMPUTE FB SETTINGS", firebase + settings);
       return firebase + settings;
     },
 
@@ -662,7 +652,7 @@ function submitForm(event) {
     computeCbxLabel: function(cbxLabel) {
       return cbxLabel.toLowerCase() != 'opt in'
               ? cbxLabel
-              : 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus nisi ligula, auctor eu sem et, pharetra fermentum elit. Proin a libero condimentum, cursus odio at, cursus tortor. Praesent placerat molestie risus, et condimentum eros ultricies et. Donec tempor semper justo. Duis vitae tincidunt magna, non ornare lacus. Praesent fringilla mi eget felis aliquam consectetur. ';
+              : 'Yes, I would like to receive future marketing communications (such as email) from Caterpillar Inc., its affiliates and subsidiaries worldwide and the Cat dealer network. Regardless of whether you decide to receive these marketing communications, Caterpillar will continue to send service/transactional messages, including those that have to do with any accounts that you may have with us. ';
 
     },
 
@@ -673,7 +663,6 @@ function submitForm(event) {
      * @return {string} 'required' or ''
      */
     computeFormAction: function(url, endpoint) {
-      console.log('computeFormAction',  `${url}/${endpoint}`);
       return `${url}/${endpoint}`;
     }
 
