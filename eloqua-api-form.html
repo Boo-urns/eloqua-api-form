@@ -1,4 +1,4 @@
-<!--
+3<!--
 @license
 Copyright (c) 2015 The Polymer Project Authors. All rights reserved.
 This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
@@ -330,7 +330,7 @@ function submitForm(event) {
       formName: String,
       ajaxurl: String,
       pagetitle: String,
-
+      staticCheckbox: String,
       /**
        * `actionurl` base url for where the api is hosted
       */
@@ -533,7 +533,7 @@ function submitForm(event) {
       timestamp = formData.timestamp;
 
       if((currentTimestamp - timestamp)  > (60 * 60 * 24 * 1000) || timestamp === undefined) {
-        this.ajaxurl = `${this.actionurl}/token`;
+        this.ajaxurl = `${this.actionurl}/landingPage/${this.landingpageid}`
       } else {
         let optionListIds = []; // store optionListIds here
 
@@ -600,7 +600,7 @@ function submitForm(event) {
     // Actually it's an eloqua landing page that has the form on it
     // But we're just pulling the form
     computeFirebaseForms: function(firebase, landingPageID) {
-      return firebase + '/elq/forms/' + landingPageID;
+      return `${firebase}/elq/forms/${landingPageID}`;
     },
 
     /**
@@ -650,7 +650,7 @@ function submitForm(event) {
      * @return {string} same label or corporate text
      */
     computeCbxLabel: function(cbxLabel) {
-      return cbxLabel.toLowerCase() != 'opt in'
+      return cbxLabel.toLowerCase() != this.staticCheckbox
               ? cbxLabel
               : 'Yes, I would like to receive future marketing communications (such as email) from Caterpillar Inc., its affiliates and subsidiaries worldwide and the Cat dealer network. Regardless of whether you decide to receive these marketing communications, Caterpillar will continue to send service/transactional messages, including those that have to do with any accounts that you may have with us. ';
 
@@ -664,31 +664,9 @@ function submitForm(event) {
      */
     computeFormAction: function(url, endpoint) {
       return `${url}/${endpoint}`;
-    }
-
+    },
 
 
   });
 
 </script>
-<!--<script type='text/javascript'>
-var timerId = null, timeout = 5;
-</script>
-<script type='text/javascript'>
-function WaitUntilCustomerGUIDIsRetrieved() {
-if (!!(timerId)) {
-    if (timeout == 0) {
-return;
-}
-if (typeof this.GetElqCustomerGUID === 'function') {
-        document.forms["TEST_signup-1465575899166"].elements["elqCustomerGUID"].value = GetElqCustomerGUID();
-return;
-}
-timeout -= 1;
-}
-timerId = setTimeout("WaitUntilCustomerGUIDIsRetrieved()", 500);
-return;
-}
-window.onload = WaitUntilCustomerGUIDIsRetrieved;
-_elqQ.push(['elqGetCustomerGUID']);
-</script>-->
