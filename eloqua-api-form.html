@@ -99,7 +99,13 @@ Example:
         box-sizing: border-box;
 
       }
-
+      paper-checkbox.subscription {
+        font-size: 12px;
+        padding-right: 3.5%;
+      }
+      form {
+        padding: 10px 20px;
+      }
       #header {
         background: #cacaca;
         text-align: center;
@@ -187,7 +193,7 @@ Example:
           <!-- CHECKBOX INPUTS -->
           <template is="dom-if" if="{{computeInputType(input.displayType, 'checkbox')}}">
 
-            <paper-checkbox required name="{{input.htmlName}}" tabindex$="{{index}}" {{computeRequiredCbx(input.htmlName)}}>{{computeCbxLabel(input.name)}}</paper-checkbox>
+            <paper-checkbox required name="{{input.htmlName}}" class$="{{input.htmlName}}" tabindex$="{{index}}" {{computeRequiredCbx(input.htmlName)}}>{{computeCbxLabel(input.name)}}</paper-checkbox>
 
           </template>
 
