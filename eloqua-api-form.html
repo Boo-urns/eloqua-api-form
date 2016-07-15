@@ -14,13 +14,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="import" href="../firebase-element/firebase-collection.html">
 <link rel="import" href="../firebase-element/firebase-document.html">
 
-
-
 <!-- IRON ELEMENTS -->
 <link rel="import" href="../iron-ajax/iron-ajax.html">
 <link rel="import" href="../iron-form/iron-form.html">
 <link rel="import" href="../iron-flex-layout/iron-flex-layout-classes.html">
-
 
 <!-- PAPER ELEMENTS -->
 <link rel="import" href="../paper-item/paper-item.html">
@@ -34,10 +31,15 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 Pulls in and parses the eloqua REST API for landing page. We are pulling data from the landing page for the form per governance requirements. [Don't ask...]
 
 REQUIRES A Server to get keys to pull from the API.
+{
+  utm_term: 'eloqua',
+  utm_source: 'google',
+}
+
 
 Example:
 
-    <eloqua-api-form landingpageid="73" firebaseURL="yourfirebaseurl.com" settingspath="/elq/settings"></eloqua-api-form>
+    <eloqua-api-form landingpageid="73" firebaseURL="yourfirebaseurl.com" settingspath="/elq/settings" url-params={{params}}></eloqua-api-form>
 
 @element eloqua-api-form
 @demo demo/index.html
@@ -167,6 +169,15 @@ Example:
               <paper-input label="{{input.name}}" name="{{input.htmlName}}" class$="[[returnFieldSize(input.style)]]" required auto-validate error-message="{{input.validations.message}}" tabindex$="{{index}}"></paper-input>
 
           </template>
+
+
+          <!-- HIDDEN INPUTS -->
+          <template is="dom-if" if="{{computeInputType(input.displayType, 'hidden')}}">
+
+              <input name="[[input.name]]" type="hidden" value="[[input.defaultValue]]">
+
+          </template>
+
 
           <!-- DROPDOWN INPUTS -->
           <template is="dom-if" if="{{computeInputType(input.displayType, 'singleSelect')}}">
@@ -333,6 +344,7 @@ function submitForm(event) {
       ajaxurl: String,
       pagetitle: String,
       staticCheckbox: String,
+      urlParams: Object,
       /**
        * `actionurl` base url for where the api is hosted
       */
@@ -441,10 +453,19 @@ function submitForm(event) {
 
           let elqFormData = {};
 
-          for(var prop in this.elqform) {
+          for(let prop in this.elqform) {
             elqFormData[prop] = this.elqform[prop];
           }
 
+          if(this.urlParams) {
+            for(let prop in elqFormData) {
+              for (let utmProp in this.urlParams) {
+                if(elqFormData[prop].htmlName === utmProp) {
+                  elqFormData[prop].defaultValue = this.urlParams[utmProp];
+                }
+              }
+            }
+          }
 
           elqFormData.formName  = this.formName;
           elqFormData.timestamp = Date.now();
@@ -452,6 +473,8 @@ function submitForm(event) {
           //this.$.firebaseForm.set( elqFormData );
 
           this.firebaseMarkup = elqFormData;
+
+          console.log(elqFormData);
 
         } else {
           console.error('NOT EXPECTING MORE THAN 1 FORM FOR NOW');
