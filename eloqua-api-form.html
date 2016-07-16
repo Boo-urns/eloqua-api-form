@@ -257,443 +257,441 @@ function submitForm(event) {
   Polymer.dom(event).localTarget.parentElement.submit();
 }
 
-  Polymer({
+'use strict';
 
-    is: 'eloqua-api-form',
+Polymer({
 
-    properties: {
-      /**
-       * `elqform` Pulled from the API or Firebase database
-       * to stamp out the template for the form
-       */
-      elqform: {
-        type: Object,
-        notfiy: true
-      },
+  is: 'eloqua-api-form',
 
-      /**
-       * `firebaseurl` URL for the root of your firebase database
-       * 'https://your-app.firebaseio.com'
-       */
-      firebaseurl: {
-        type: String,
-      },
-
-      /**
-       * `firebaseElq` Pulling in specific data from firebase
-       *
-       */
-      firebaseElq: {
-        type: Object,
-        observer: 'fireElqSettings'
-      },
-
-      /**
-       * `firebaseElqForms` Computed property for path to the specified form
-       *
-       */
-      firebaseElqForms: {
-        type: String,
-        computed: 'computeFirebaseForms(firebaseurl, landingpageid)'
-      },
-
-      /**
-       * `firebaseElqForms` Computed property for path to eloqua settings
-       *
-       */
-      firebaseSettingsPath: {
-        type: String,
-        computed: 'computeFirebaseSettingPath(firebaseurl, settingspath)'
-      },
-
-      /**
-       * `firebaseMarkup` data from firebase for specified form on the landing page
-       *
-       */
-      firebaseMarkup: {
-        type: Object,
-        observer: 'firebaseMarkupChanged'
-      },
-
-      firebaseOptionListPath: {
-        type: String,
-      },
-      firebaseOptionList: {
-        type: Object,
-        observer: 'firebaseOptionChanged'
-      },
-      optionLists: {
-        type: Array
-      },
-      /**
-       * Self explanatory it's eloqua's landing page that the form is on
-       *
-       */
-      landingpageid: Number,
-
-      /**
-       * Settings Path for data related to eloqua settings (actionURL, siteID etc...)
-       *
-       */
-      settingspath: String,
-      /**
-       * `formName` set by the API and or Firebase call.
-       * Used for the required input and form name for eloqua.
-       */
-      formName: String,
-      ajaxurl: String,
-      pagetitle: String,
-      staticCheckbox: String,
-      urlParams: Object,
-      /**
-       * `actionurl` base url for where the api is hosted
-      */
-      actionurl: String,
-      /**
-       * `actionEndpoint` endpoint for where the form submission goes
-      */
-      actionEndpoint: String,
-      responseTitle: String,
-
-      formAction: {
-        type: String,
-        computed: 'computeFormAction(actionurl, actionEndpoint)'
-      },
-
-      ajaxResponse: {
-        type: String,
-        value: 'handleResponse'
-      }
+  properties: {
+    /**
+     * `elqform` Pulled from the API or Firebase database
+     * to stamp out the template for the form
+     */
+    elqform: {
+      type: Object,
+      notfiy: true
     },
 
-
-
-
-    // Element Lifecycle
-
-    ready: function() {
-      // `ready` is called after all elements have been configured, but
-      // propagates bottom-up. This element's children are ready, but parents
-      // are not.
-      //
-      // This is the point where you should make modifications to the DOM (when
-      // necessary), or kick off any processes the element wants to perform.
+    /**
+     * `firebaseurl` URL for the root of your firebase database
+     * 'https://your-app.firebaseio.com'
+     */
+    firebaseurl: {
+      type: String
     },
 
-    attached: function() {
-      // `attached` fires once the element and its parents have been inserted
-      // into a document.
-      //
-      // This is a good place to perform any work related to your element's
-      // visual state or active behavior (measuring sizes, beginning animations,
-      // loading resources, etc).
-
-
-    },
-
-    detached: function() {
-      this.response = false;
-      // The analog to `attached`, `detached` fires when the element has been
-      // removed from a document.
-      //
-      // Use this to clean up anything you did in `attached`.
-    },
-
-    // Element Behavior
-
-
-    handleResponse: function(response) {
-
-      if(this.ajaxurl.indexOf('optionList') !== -1) {
-        let idx = this.ajaxurl.indexOf('optionList');
-        this._setupSelect(response,  this.ajaxurl.substring(idx + 11));
-      }
-      else if (this.ajaxurl !== `${this.actionurl}/landingPage/${this.landingpageid}`) {
-          this.ajaxurl = `${this.actionurl}/landingPage/${this.landingpageid}`;
-      } else {
-        this._setupForm(response);
-      }
-
-    },
-
-
-    /*
-     * Response after submitting the form to eloqua
+    /**
+     * `firebaseElq` Pulling in specific data from firebase
      *
-    **/
-    formResponse: function(e) {
-      let removeAdditional = ['<!--[if lt IE 7]>', '<![endif]-->'];
-      let response = this._returnCleanedResponse(e.detail.response, removeAdditional);
-      this.set('response', response);
-
+     */
+    firebaseElq: {
+      type: Object,
+      observer: 'fireElqSettings'
     },
 
+    /**
+     * `firebaseElqForms` Computed property for path to the specified form
+     *
+     */
+    firebaseElqForms: {
+      type: String,
+      computed: 'computeFirebaseForms(firebaseurl, landingpageid)'
+    },
 
-    _setupForm: function(data) {
-      let html = this._returnCleanedResponse(data.detail.response.htmlContent.html);
+    /**
+     * `firebaseElqForms` Computed property for path to eloqua settings
+     *
+     */
+    firebaseSettingsPath: {
+      type: String,
+      computed: 'computeFirebaseSettingPath(firebaseurl, settingspath)'
+    },
 
-      // Removing Form (to see what is remaining)
-      let htmlNoForm = html.replace(/<form\b[^<]*(?:(?!<\/form>)<[^<]*)*<\/form>/gi
-, '');
+    /**
+     * `firebaseMarkup` data from firebase for specified form on the landing page
+     *
+     */
+    firebaseMarkup: {
+      type: Object,
+      observer: 'firebaseMarkupChanged'
+    },
 
-      // Removing styles that sneak through...
-      htmlNoForm = htmlNoForm.replace(/([\s\S]*)<style[\s\S]*?<\/style>/g, '$1');
+    firebaseOptionListPath: {
+      type: String
+    },
+    firebaseOptionList: {
+      type: Object,
+      observer: 'firebaseOptionChanged'
+    },
+    optionLists: {
+      type: Array
+    },
+    /**
+     * Self explanatory it's eloqua's landing page that the form is on
+     *
+     */
+    landingpageid: Number,
 
-      htmlNoForm = htmlNoForm.replace(/^\s+|\s+$/g, '');
-      htmlNoForm = htmlNoForm.replace(/(\r\n|\n|\r)/gm, '');
-      htmlNoForm = htmlNoForm.replace(/ /g,'');
+    /**
+     * Settings Path for data related to eloqua settings (actionURL, siteID etc...)
+     *
+     */
+    settingspath: String,
+    /**
+     * `formName` set by the API and or Firebase call.
+     * Used for the required input and form name for eloqua.
+     */
+    formName: String,
+    ajaxurl: String,
+    pagetitle: String,
+    staticCheckbox: String,
+    urlParams: Object,
+    /**
+     * `actionurl` base url for where the api is hosted
+    */
+    actionurl: String,
+    /**
+     * `actionEndpoint` endpoint for where the form submission goes
+    */
+    actionEndpoint: String,
+    responseTitle: String,
 
-      // Just an empty div which means just the form is on the page
-      if(htmlNoForm.length <= 11) {
+    formAction: {
+      type: String,
+      computed: 'computeFormAction(actionurl, actionEndpoint)'
+    },
 
-        if(data.detail.response.forms.length === 1) {
+    ajaxResponse: {
+      type: String,
+      value: 'handleResponse'
+    }
+  },
 
-          this.formName = data.detail.response.forms[0].htmlName;
-          this.elqform = data.detail.response.forms[0].elements;
+  // Element Lifecycle
 
-          let elqFormData = {};
+  ready: function ready() {
+    // `ready` is called after all elements have been configured, but
+    // propagates bottom-up. This element's children are ready, but parents
+    // are not.
+    //
+    // This is the point where you should make modifications to the DOM (when
+    // necessary), or kick off any processes the element wants to perform.
+  },
 
-          for(let prop in this.elqform) {
-            elqFormData[prop] = this.elqform[prop];
-          }
+  attached: function attached() {
+    // `attached` fires once the element and its parents have been inserted
+    // into a document.
+    //
+    // This is a good place to perform any work related to your element's
+    // visual state or active behavior (measuring sizes, beginning animations,
+    // loading resources, etc).
 
-          if(this.urlParams) {
-            for(let prop in elqFormData) {
-              for (let utmProp in this.urlParams) {
-                if(elqFormData[prop].htmlName === utmProp) {
-                  elqFormData[prop].defaultValue = this.urlParams[utmProp];
-                }
+  },
+
+  detached: function detached() {
+    this.response = false;
+    // The analog to `attached`, `detached` fires when the element has been
+    // removed from a document.
+    //
+    // Use this to clean up anything you did in `attached`.
+  },
+
+  // Element Behavior
+
+  handleResponse: function handleResponse(response) {
+
+    if (this.ajaxurl.indexOf('optionList') !== -1) {
+      var idx = this.ajaxurl.indexOf('optionList');
+      this._setupSelect(response, this.ajaxurl.substring(idx + 11));
+    } else if (this.ajaxurl !== this.actionurl + '/landingPage/' + this.landingpageid) {
+      this.ajaxurl = this.actionurl + '/landingPage/' + this.landingpageid;
+    } else {
+      this._setupForm(response);
+    }
+  },
+
+  /*
+   * Response after submitting the form to eloqua
+   *
+  **/
+  formResponse: function formResponse(e) {
+    var removeAdditional = ['<!--[if lt IE 7]>', '<![endif]-->'];
+    var response = this._returnCleanedResponse(e.detail.response, removeAdditional);
+    this.set('response', response);
+  },
+
+  _setupForm: function _setupForm(data) {
+    var html = this._returnCleanedResponse(data.detail.response.htmlContent.html);
+
+    // Removing Form (to see what is remaining)
+    var htmlNoForm = html.replace(/<form\b[^<]*(?:(?!<\/form>)<[^<]*)*<\/form>/gi, '');
+
+    // Removing styles that sneak through...
+    htmlNoForm = htmlNoForm.replace(/([\s\S]*)<style[\s\S]*?<\/style>/g, '$1');
+
+    htmlNoForm = htmlNoForm.replace(/^\s+|\s+$/g, '');
+    htmlNoForm = htmlNoForm.replace(/(\r\n|\n|\r)/gm, '');
+    htmlNoForm = htmlNoForm.replace(/ /g, '');
+
+    // Just an empty div which means just the form is on the page
+    if (htmlNoForm.length <= 11) {
+
+      if (data.detail.response.forms.length === 1) {
+
+        this.formName = data.detail.response.forms[0].htmlName;
+        this.elqform = data.detail.response.forms[0].elements;
+
+        var elqFormData = {};
+
+        for (var prop in this.elqform) {
+          elqFormData[prop] = this.elqform[prop];
+        }
+
+        if (this.urlParams) {
+          for (var _prop in elqFormData) {
+            for (var utmProp in this.urlParams) {
+              if (elqFormData[_prop].htmlName === utmProp) {
+                elqFormData[_prop].defaultValue = this.urlParams[utmProp];
               }
             }
           }
-
-          elqFormData.formName  = this.formName;
-          elqFormData.timestamp = Date.now();
-
-          //this.$.firebaseForm.set( elqFormData );
-
-          this.firebaseMarkup = elqFormData;
-
-          console.log(elqFormData);
-
-        } else {
-          console.error('NOT EXPECTING MORE THAN 1 FORM FOR NOW');
         }
 
+        elqFormData.formName = this.formName;
+        elqFormData.timestamp = Date.now();
+
+        //this.$.firebaseForm.set( elqFormData );
+
+        this.firebaseMarkup = elqFormData;
+
+        console.log(elqFormData);
       } else {
-        // Figure out what else is on the page.
-        console.error("MoAr then just the form");
+        console.error('NOT EXPECTING MORE THAN 1 FORM FOR NOW');
       }
+    } else {
+      // Figure out what else is on the page.
+      console.error("MoAr then just the form");
+    }
+  },
 
+  _setupSelect: function _setupSelect(data, id) {
 
-    },
+    // Removing options with no value!
+    var filteredOptions = data.detail.response.elements.filter(function (opt) {
+      return opt.value !== undefined ? opt : '';
+    });
 
+    this.firebaseOptionListPath = this.firebaseurl + '/elq/optionList/' + id;
+    this.firebaseOptionList = { options: filteredOptions };
+  },
 
+  returnFieldSize: function returnFieldSize(styles) {
+    styles = JSON.parse(styles);
+    return styles.fieldSize;
+  },
 
+  /*
+   * Return stripped clean response (which is a html document)
+   */
+  _returnCleanedResponse: function _returnCleanedResponse(html) {
+    var additionalTags = arguments.length <= 1 || arguments[1] === undefined ? [] : arguments[1];
 
-    _setupSelect: function(data, id) {
+    var remove_arr = ['<!DOCTYPE html>', '<html>', '</html>', '<body>', '</body>'];
+    var _iteratorNormalCompletion = true;
+    var _didIteratorError = false;
+    var _iteratorError = undefined;
 
-      // Removing options with no value!
-      let filteredOptions = data.detail.response.elements.filter(opt =>
-                                opt.value !== undefined
-                                ? opt : '');
+    try {
+      for (var _iterator = additionalTags[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+        var additional = _step.value;
 
-      this.firebaseOptionListPath = this.firebaseurl + '/elq/optionList/' + id;
-      this.firebaseOptionList = { options: filteredOptions };
-    },
-
-
-
-
-    returnFieldSize: function(styles) {
-      styles = JSON.parse(styles);
-      return styles.fieldSize;
-    },
-
-
-    /*
-     * Return stripped clean response (which is a html document)
-     */
-    _returnCleanedResponse: function(html, additionalTags = []) {
-      let remove_arr = ['<!DOCTYPE html>', '<html>', '</html>', '<body>', '</body>'];
-      for(let additional of additionalTags) {
         remove_arr.push(additional);
       }
 
       // Removing tags specified above
-      for(let item of remove_arr) {
+    } catch (err) {
+      _didIteratorError = true;
+      _iteratorError = err;
+    } finally {
+      try {
+        if (!_iteratorNormalCompletion && _iterator.return) {
+          _iterator.return();
+        }
+      } finally {
+        if (_didIteratorError) {
+          throw _iteratorError;
+        }
+      }
+    }
+
+    var _iteratorNormalCompletion2 = true;
+    var _didIteratorError2 = false;
+    var _iteratorError2 = undefined;
+
+    try {
+      for (var _iterator2 = remove_arr[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+        var item = _step2.value;
+
         html = html.replace(item, '');
       }
       // Removing styles
-      html = html.replace(/([\s\S]*)<style[\s\S]*?<\/style>/g, '$1');
-
-      // Removing <head>
-      html = html.replace(/([\s\S]*)<head[\s\S]*?<\/head>/g, '$1');
-
-      // Removing scripts
-      html = html.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi
-, '');
-
-      return html;
-
-    },
-
-
-
-
-    // -----------------------------------------------------------------
-    //
-    // OBSERVERS
-    //
-    // -----------------------------------------------------------------
-
-    firebaseMarkupChanged: function(newData, oldData) {
-      let timestamp;
-      let currentTimestamp = Date.now();
-      let formData = {};
-      let outputForm = [];
-
-      for(var prop in newData) {
-        formData[prop]= newData[prop];
+    } catch (err) {
+      _didIteratorError2 = true;
+      _iteratorError2 = err;
+    } finally {
+      try {
+        if (!_iteratorNormalCompletion2 && _iterator2.return) {
+          _iterator2.return();
+        }
+      } finally {
+        if (_didIteratorError2) {
+          throw _iteratorError2;
+        }
       }
+    }
 
-      timestamp = formData.timestamp;
+    html = html.replace(/([\s\S]*)<style[\s\S]*?<\/style>/g, '$1');
 
-      if((currentTimestamp - timestamp)  > (60 * 60 * 24 * 1000) || timestamp === undefined) {
-        this.ajaxurl = `${this.actionurl}/landingPage/${this.landingpageid}`
-      } else {
-        let optionListIds = []; // store optionListIds here
+    // Removing <head>
+    html = html.replace(/([\s\S]*)<head[\s\S]*?<\/head>/g, '$1');
 
-        for( var prop in formData ) {
-          outputForm.push(formData[prop]);
+    // Removing scripts
+    html = html.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
 
-          if( prop === 'formName' ) {
-            this.formName = formData[prop];
-          }
+    return html;
+  },
 
-          if( formData[prop]['displayType'] === 'singleSelect' ) {
-            optionListIds.push(parseInt(formData[prop]['optionListId']));
-          }
+  // -----------------------------------------------------------------
+  //
+  // OBSERVERS
+  //
+  // -----------------------------------------------------------------
 
+  firebaseMarkupChanged: function firebaseMarkupChanged(newData, oldData) {
+    var timestamp = void 0;
+    var currentTimestamp = Date.now();
+    var formData = {};
+    var outputForm = [];
+
+    for (var prop in newData) {
+      formData[prop] = newData[prop];
+    }
+
+    timestamp = formData.timestamp;
+
+    if (currentTimestamp - timestamp > 60 * 60 * 24 * 1000 || timestamp === undefined) {
+      this.ajaxurl = this.actionurl + '/landingPage/' + this.landingpageid;
+    } else {
+      var optionListIds = []; // store optionListIds here
+
+      for (var prop in formData) {
+        outputForm.push(formData[prop]);
+
+        if (prop === 'formName') {
+          this.formName = formData[prop];
         }
 
+        if (formData[prop]['displayType'] === 'singleSelect') {
+          optionListIds.push(parseInt(formData[prop]['optionListId']));
+        }
+      }
 
-        this.elqform = outputForm;
+      this.elqform = outputForm;
 
-        // If optionListIds > 0 we have some select inputs!
-        if ( optionListIds.length > 0 ) {
+      // If optionListIds > 0 we have some select inputs!
+      if (optionListIds.length > 0) {
 
-          this.ajaxResponse = 'handleOptionLists';
+        this.ajaxResponse = 'handleOptionLists';
 
-          for( let i = 0; i < optionListIds.length; i++ ) {
-              this.firebaseOptionListPath = `${this.firebaseurl}/elq/optionList/${optionListIds[i]}`;
-          }
-
-          this.optionLists = optionListIds;
+        for (var i = 0; i < optionListIds.length; i++) {
+          this.firebaseOptionListPath = this.firebaseurl + '/elq/optionList/' + optionListIds[i];
         }
 
+        this.optionLists = optionListIds;
       }
+    }
+  },
 
-    },
+  fireElqSettings: function fireElqSettings(newData, oldData) {},
 
+  firebaseOptionListChange: function firebaseOptionListChange(newData, oldData) {},
 
-    fireElqSettings: function(newData, oldData) {
-    },
+  firebaseOptionChanged: function firebaseOptionChanged(newOpt, oldOpt) {
+    if (newOpt !== null) {
+      this.optionLists.shift();
+    } else {
+      this.ajaxurl = this.actionurl + '/optionList/' + this.optionLists[0];
+    }
+  },
 
+  // -----------------------------------------------------------------
+  //
+  // COMPUTED PROPERTIES
+  //
+  // -----------------------------------------------------------------
 
+  // Actually it's an eloqua landing page that has the form on it
+  // But we're just pulling the form
+  computeFirebaseForms: function computeFirebaseForms(firebase, landingPageID) {
+    return firebase + '/elq/forms/' + landingPageID;
+  },
 
-    firebaseOptionListChange: function(newData, oldData) {
-    },
-
-
-    firebaseOptionChanged: function(newOpt, oldOpt) {
-      if(newOpt !== null) {
-        this.optionLists.shift();
-      } else {
-        this.ajaxurl = `${this.actionurl}/optionList/${this.optionLists[0]}`;
-      }
-
-    },
-
-
-
-
-    // -----------------------------------------------------------------
-    //
-    // COMPUTED PROPERTIES
-    //
-    // -----------------------------------------------------------------
-
-    // Actually it's an eloqua landing page that has the form on it
-    // But we're just pulling the form
-    computeFirebaseForms: function(firebase, landingPageID) {
-      return `${firebase}/elq/forms/${landingPageID}`;
-    },
-
-    /**
-     * Pass in firebase url and settings path
-     * to compute the value for firebaseSettings
-     * Used for location
-     *
-     * @param {string} firebase url
-     * @param {string} settings path
-     * @return {string} firebase url + settings path
-    */
-    computeFirebaseSettingPath(firebase, settings) {
-      return firebase + settings;
-    },
+  /**
+   * Pass in firebase url and settings path
+   * to compute the value for firebaseSettings
+   * Used for location
+   *
+   * @param {string} firebase url
+   * @param {string} settings path
+   * @return {string} firebase url + settings path
+  */
+  computeFirebaseSettingPath: function computeFirebaseSettingPath(firebase, settings) {
+    return firebase + settings;
+  },
 
 
-    /**
-     * Pass in the inputType and typeExpecting to return boolean
-     *
-     * @param {string} the input type
-     * @param {string} input type expecting
-     * @return {boolean} If the input type is text
-     */
-    computeInputType: function(inputType, typeExpecting) {
-      return inputType === typeExpecting
-                ? true : false;
-    },
+  /**
+   * Pass in the inputType and typeExpecting to return boolean
+   *
+   * @param {string} the input type
+   * @param {string} input type expecting
+   * @return {boolean} If the input type is text
+   */
+  computeInputType: function computeInputType(inputType, typeExpecting) {
+    return inputType === typeExpecting ? true : false;
+  },
 
+  /**
+   * Pass the checkbox name to return if required
+   *
+   * @param {string} the checkbox name
+   * @return {string} 'required' or ''
+   */
+  computeRequiredCbx: function computeRequiredCbx(cbxName) {
+    return cbxName === 'confirm' ? 'required' : '';
+  },
 
-    /**
-     * Pass the checkbox name to return if required
-     *
-     * @param {string} the checkbox name
-     * @return {string} 'required' or ''
-     */
-    computeRequiredCbx: function(cbxName) {
-      return cbxName === 'confirm' ?
-              'required' : '';
-    },
+  /**
+   * Figure out the checkbox label
+   *
+   * To insert the massive copy for the checbox. Feel free to remove method
+   * @param {string} the checkbox name
+   * @return {string} same label or corporate text
+   */
+  computeCbxLabel: function computeCbxLabel(cbxLabel) {
+    return cbxLabel.toLowerCase() != this.staticCheckbox ? cbxLabel : 'Yes, I would like to receive future marketing communications (such as email) from Caterpillar Inc., its affiliates and subsidiaries worldwide and the Cat dealer network. Regardless of whether you decide to receive these marketing communications, Caterpillar will continue to send service/transactional messages, including those that have to do with any accounts that you may have with us. ';
+  },
 
+  /**
+   * Return string for formAction
+   *
+   * @param {string}
+   * @return {string} 'required' or ''
+   */
+  computeFormAction: function computeFormAction(url, endpoint) {
+    return url + '/' + endpoint;
+  }
 
-    /**
-     * Figure out the checkbox label
-     *
-     * To insert the massive copy for the checbox. Feel free to remove method
-     * @param {string} the checkbox name
-     * @return {string} same label or corporate text
-     */
-    computeCbxLabel: function(cbxLabel) {
-      return cbxLabel.toLowerCase() != this.staticCheckbox
-              ? cbxLabel
-              : 'Yes, I would like to receive future marketing communications (such as email) from Caterpillar Inc., its affiliates and subsidiaries worldwide and the Cat dealer network. Regardless of whether you decide to receive these marketing communications, Caterpillar will continue to send service/transactional messages, including those that have to do with any accounts that you may have with us. ';
-
-    },
-
-    /**
-     * Return string for formAction
-     *
-     * @param {string}
-     * @return {string} 'required' or ''
-     */
-    computeFormAction: function(url, endpoint) {
-      return `${url}/${endpoint}`;
-    },
-
-
-  });
-
+});
 </script>
