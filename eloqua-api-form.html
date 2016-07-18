@@ -422,6 +422,7 @@ Polymer({
   },
 
   _setupForm: function _setupForm(data) {
+
     var html = this._returnCleanedResponse(data.detail.response.htmlContent.html);
 
     // Removing Form (to see what is remaining)
@@ -440,13 +441,21 @@ Polymer({
       if (data.detail.response.forms.length === 1) {
 
         this.formName = data.detail.response.forms[0].htmlName;
-        this.elqform = data.detail.response.forms[0].elements;
+        var placeholderForm = data.detail.response.forms[0].elements;
 
         var elqFormData = {};
 
-        for (var prop in this.elqform) {
-          elqFormData[prop] = this.elqform[prop];
+        for (var prop in placeholderForm) {
+          elqFormData[prop] = placeholderForm[prop];
         }
+
+        elqFormData.formName = this.formName;
+        elqFormData.timestamp = Date.now();
+
+        //this.$.firebaseForm.set( elqFormData );
+
+        this.firebaseMarkup = elqFormData;
+
 
         if (this.urlParams) {
           for (var _prop in elqFormData) {
@@ -458,14 +467,17 @@ Polymer({
           }
         }
 
-        elqFormData.formName = this.formName;
-        elqFormData.timestamp = Date.now();
+        delete elqFormData.formName;
+        delete elqFormData.timestamp;
 
-        //this.$.firebaseForm.set( elqFormData );
+        var outputForm = [];
 
-        this.firebaseMarkup = elqFormData;
+        for(var prop in elqFormData) {
+          outputForm.push(elqFormData[prop]);
+        }
 
-        console.log(elqFormData);
+        this.elqform = outputForm;
+
       } else {
         console.error('NOT EXPECTING MORE THAN 1 FORM FOR NOW');
       }
@@ -494,71 +506,25 @@ Polymer({
   /*
    * Return stripped clean response (which is a html document)
    */
-  _returnCleanedResponse: function _returnCleanedResponse(html) {
-    var additionalTags = arguments.length <= 1 || arguments[1] === undefined ? [] : arguments[1];
+  _returnCleanedResponse: function(html, additionalTags = []) {
+    let remove_arr = ['<!DOCTYPE html>', '<html>', '</html>', '<body>', '</body>'];
 
-    var remove_arr = ['<!DOCTYPE html>', '<html>', '</html>', '<body>', '</body>'];
-    var _iteratorNormalCompletion = true;
-    var _didIteratorError = false;
-    var _iteratorError = undefined;
-
-    try {
-      for (var _iterator = additionalTags[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-        var additional = _step.value;
-
-        remove_arr.push(additional);
-      }
-
-      // Removing tags specified above
-    } catch (err) {
-      _didIteratorError = true;
-      _iteratorError = err;
-    } finally {
-      try {
-        if (!_iteratorNormalCompletion && _iterator.return) {
-          _iterator.return();
-        }
-      } finally {
-        if (_didIteratorError) {
-          throw _iteratorError;
-        }
-      }
+    for(var i =0; i<additionalTags.length; i++) {
+      remove_arr.push(additionalTags[i]);
     }
 
-    var _iteratorNormalCompletion2 = true;
-    var _didIteratorError2 = false;
-    var _iteratorError2 = undefined;
-
-    try {
-      for (var _iterator2 = remove_arr[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
-        var item = _step2.value;
-
-        html = html.replace(item, '');
-      }
-      // Removing styles
-    } catch (err) {
-      _didIteratorError2 = true;
-      _iteratorError2 = err;
-    } finally {
-      try {
-        if (!_iteratorNormalCompletion2 && _iterator2.return) {
-          _iterator2.return();
-        }
-      } finally {
-        if (_didIteratorError2) {
-          throw _iteratorError2;
-        }
-      }
+    // Removing tags specified above
+    for(var i = 0; i < remove_arr.length; i++) {
+      html = html.replace(remove_arr[i], '');
     }
 
+    // Removing styles
     html = html.replace(/([\s\S]*)<style[\s\S]*?<\/style>/g, '$1');
-
     // Removing <head>
     html = html.replace(/([\s\S]*)<head[\s\S]*?<\/head>/g, '$1');
-
     // Removing scripts
-    html = html.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
-
+    html = html.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi
+, '');
     return html;
   },
 
