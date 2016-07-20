@@ -27,6 +27,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="import" href="../paper-dropdown-menu/paper-dropdown-menu.html">
 <link rel="import" href="../paper-listbox/paper-listbox.html">
 
+<link rel="import" href="../gold-email-input/gold-email-input.html">
+
 <!--
 Pulls in and parses the eloqua REST API for landing page. We are pulling data from the landing page for the form per governance requirements. [Don't ask...]
 
@@ -67,20 +69,24 @@ Example:
         };
       }
       paper-input,
-      paper-checkbox {
+      paper-checkbox,
+      gold-email-input {
         padding: 10px 2.5%;
       }
       paper-input,
-      paper-dropdown-menu {
+      paper-dropdown-menu,
+      gold-email-input {
         text-transform: uppercase;
       }
-      paper-input.small {
+      paper-input.small,
+      gold-email-input.small {
         @apply(--layout-flex);
         width: 33%;
         display: inline-block;
         box-sizing: border-box;
       }
-      paper-input.medium {
+      paper-input.medium,
+      gold-email-input.medium {
         @apply(--layout-flex);
         width: 48.75%; /* 48.75 * 2 = 97.5 to get the amt padding on the right*/
         padding: 10px 0 10px 2.5%;
@@ -166,7 +172,13 @@ Example:
           <!-- TEXT INPUTS -->
           <template is="dom-if" if="{{computeInputType(input.displayType, 'text')}}">
 
-              <paper-input label="{{input.name}}" id$="{{input.htmlName}}" name="{{input.htmlName}}" class$="[[returnFieldSize(input.style)]]" required auto-validate error-message="{{input.validations.message}}" tabindex$="{{index}}"></paper-input>
+              <template is="dom-if" if="{{computeIsEmailInput(input.htmlName)}}">
+                <gold-email-input label="{{input.name}}" name="{{input.htmlName}}" auto-validate required></gold-email-input>
+              </template>
+
+              <template is="dom-if" if="{{!computeIsEmailInput(input.htmlName)}}">
+                <paper-input label="{{input.name}}" id$="{{input.htmlName}}" name="{{input.htmlName}}" class$="[[returnFieldSize(input.style)]]" required auto-validate error-message="{{input.validations.message}}" tabindex$="{{index}}"></paper-input>
+              </template>
 
           </template>
 
@@ -182,7 +194,7 @@ Example:
           <!-- DROPDOWN INPUTS -->
           <template is="dom-if" if="{{computeInputType(input.displayType, 'singleSelect')}}">
 
-            <paper-dropdown-menu label="{{input.name}}" selected-item="{{selectedItem}}" class$="[[returnFieldSize(input.style)]]" horizontal-align="left" tabindex$="{{index}}" required>
+            <paper-dropdown-menu label="{{input.name}}" selected-item="{{selectedItem}}" class$="[[returnFieldSize(input.style)]]" horizontal-align="left" tabindex$="{{index}}" required auto-validate>
               <paper-listbox class="dropdown-content">
 
               <template is="dom-repeat" items="{{firebaseOptionList.options}}" as="list" filter="{{computeFilter(list)}}">
@@ -662,6 +674,9 @@ Polymer({
     return cbxName === 'confirm' ? 'required' : '';
   },
 
+  computeIsEmailInput: function(inputName) {
+    return inputName === 'email' ? true : false;
+  },
   /**
    * Figure out the checkbox label
    *
