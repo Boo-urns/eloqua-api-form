@@ -182,7 +182,7 @@ Example:
           <!-- DROPDOWN INPUTS -->
           <template is="dom-if" if="{{computeInputType(input.displayType, 'singleSelect')}}">
 
-            <paper-dropdown-menu label="{{input.name}}" selected-item="{{selectedItem}}" class$="[[returnFieldSize(input.style)]]" horizontal-align="left" tabindex$="{{index}}">
+            <paper-dropdown-menu label="{{input.name}}" selected-item="{{selectedItem}}" class$="[[returnFieldSize(input.style)]]" horizontal-align="left" tabindex$="{{index}}" required>
               <paper-listbox class="dropdown-content">
 
               <template is="dom-repeat" items="{{firebaseOptionList.options}}" as="list" filter="{{computeFilter(list)}}">
