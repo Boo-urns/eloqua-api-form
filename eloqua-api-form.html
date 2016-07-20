@@ -166,7 +166,7 @@ Example:
           <!-- TEXT INPUTS -->
           <template is="dom-if" if="{{computeInputType(input.displayType, 'text')}}">
 
-              <paper-input label="{{input.name}}" name="{{input.htmlName}}" class$="[[returnFieldSize(input.style)]]" required auto-validate error-message="{{input.validations.message}}" tabindex$="{{index}}"></paper-input>
+              <paper-input label="{{input.name}}" id$="{{input.htmlName}}" name="{{input.htmlName}}" class$="[[returnFieldSize(input.style)]]" required auto-validate error-message="{{input.validations.message}}" tabindex$="{{index}}"></paper-input>
 
           </template>
 
@@ -198,7 +198,7 @@ Example:
           <!-- CHECKBOX INPUTS -->
           <template is="dom-if" if="{{computeInputType(input.displayType, 'checkbox')}}">
 
-            <paper-checkbox required name="{{input.htmlName}}" class$="{{input.htmlName}}" tabindex$="{{index}}" {{computeRequiredCbx(input.htmlName)}}>{{computeCbxLabel(input.htmlName)}}</paper-checkbox>
+            <paper-checkbox required name="{{input.htmlName}}" id$="{{input.htmlName}}" class$="{{input.htmlName}}" tabindex$="{{index}}" {{computeRequiredCbx(input.htmlName)}}>{{computeCbxLabel(input.htmlName)}}</paper-checkbox>
 
           </template>
 
@@ -210,6 +210,14 @@ Example:
 
        </template>
     </form>
+    <script>
+      elqForm.addEventListener('change', function(event) {
+          var subscription = this.querySelector('.subscription');
+          subscription.value = subscription.checked === true ? 'True' : 'False';
+      });
+
+
+    </script>
   </template>
 
 </dom-module>
@@ -451,6 +459,10 @@ Polymer({
               elqFormData[prop] = placeholderForm[prop];
               elqFormData[prop].defaultValue = 'https://www.catminingexperience.com';
 
+          } else if(placeholderForm[prop].htmlName === this.staticCheckbox) {
+              elqFormData[prop] = placeholderForm[prop];
+              elqFormData[prop].defaultValue = 'False';
+
           } else {
 
             elqFormData[prop] = placeholderForm[prop];
@@ -536,6 +548,9 @@ Polymer({
 , '');
     return html;
   },
+
+
+
 
   // -----------------------------------------------------------------
   //
