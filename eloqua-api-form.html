@@ -198,7 +198,7 @@ Example:
           <!-- CHECKBOX INPUTS -->
           <template is="dom-if" if="{{computeInputType(input.displayType, 'checkbox')}}">
 
-            <paper-checkbox required name="{{input.htmlName}}" class$="{{input.htmlName}}" tabindex$="{{index}}" {{computeRequiredCbx(input.htmlName)}}>{{computeCbxLabel(input.name)}}</paper-checkbox>
+            <paper-checkbox required name="{{input.htmlName}}" class$="{{input.htmlName}}" tabindex$="{{index}}" {{computeRequiredCbx(input.htmlName)}}>{{computeCbxLabel(input.htmlName)}}</paper-checkbox>
 
           </template>
 
@@ -446,7 +446,16 @@ Polymer({
         var elqFormData = {};
 
         for (var prop in placeholderForm) {
-          elqFormData[prop] = placeholderForm[prop];
+
+          if(placeholderForm[prop].htmlName === 'referring-url') {
+              elqFormData[prop] = placeholderForm[prop];
+              elqFormData[prop].defaultValue = 'https://www.catminingexperience.com';
+
+          } else {
+
+            elqFormData[prop] = placeholderForm[prop];
+
+          }
         }
 
         elqFormData.formName = this.formName;
